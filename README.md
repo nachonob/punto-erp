@@ -1,6 +1,6 @@
 # Punto ERP
 
-ERP modular de Punto Domótica. La primera versión habilita **Cuentas por cobrar**: clientes, proyectos, presupuestos versionados, materiales, mano de obra, adelanto de ingeniería no reintegrable, pagos, imputaciones y recibos por email/WhatsApp.
+ERP modular. La primera versión habilita **Cuentas por cobrar**: clientes, proyectos, presupuestos versionados, materiales, mano de obra, adelanto de ingeniería no reintegrable, pagos, imputaciones y recibos por email/WhatsApp.
 
 ## Instalación nueva en Ferozo
 1. Crear la carpeta `punto-erp` dentro de `public_html`.
