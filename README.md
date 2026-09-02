@@ -18,6 +18,8 @@ ERP modular. La primera versión habilita **Cuentas por cobrar**: clientes, proy
 - `storage`: adjuntos y registros privados.
 - `config.php`: configuración local no incluida en el ZIP.
 
+`config.php` y los archivos de `storage/uploads` contienen información privada y no deben subirse al repositorio. El despliegue automático los conserva en el hosting.
+
 Los módulos futuros ya están registrados, pero permanecen deshabilitados hasta ser desarrollados.
 
 ## Actualización de una instalación existente
