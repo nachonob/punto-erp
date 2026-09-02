@@ -11,3 +11,7 @@ Permite clasificar cada presupuesto como Domótica, Redes, Cámaras, Alarma o Au
 ### 2026_09_02_moneda_por_presupuesto.sql
 
 Mueve la selección operativa de moneda a cada presupuesto y conserva la moneda también en sus cargos, pagos y recibos. Permite mezclar presupuestos ARS y USD dentro de un mismo proyecto sin sumar monedas diferentes.
+
+### 2026_09_02_iva_separado_presupuesto.sql
+
+Permite definir por separado el tratamiento y la alícuota de IVA de Materiales y Mano de obra. Los presupuestos existentes conservan en ambos conceptos la configuración de IVA que ya tenían.
