@@ -19,3 +19,7 @@ Permite definir por separado el tratamiento y la alícuota de IVA de Materiales 
 ### 2026_09_03_perfiles_usuarios.sql
 
 Agrega perfiles de usuario por área y permisos independientes para ver o gestionar cada módulo. Los administradores mantienen acceso total.
+
+### 2026_09_03_productos_precios_stock.sql
+
+Crea productos, categorías, múltiples listas de precios, imágenes y movimientos de stock. También importa los 323 registros del Excel inicial, incluidas sus 43 imágenes disponibles.

@@ -1,6 +1,6 @@
 # Punto ERP
 
-ERP modular. La primera versión habilita **Cuentas por cobrar**: clientes, proyectos, presupuestos versionados, materiales, mano de obra, adelanto de ingeniería no reintegrable, pagos, imputaciones y recibos por email/WhatsApp.
+ERP modular. La versión actual incluye **Cuentas por cobrar** y un catálogo de **Productos** con categorías, múltiples listas de precios, imágenes y control de stock.
 
 ## Instalación nueva en Ferozo
 1. Crear la carpeta `punto-erp` dentro de `public_html`.
@@ -32,6 +32,7 @@ Los módulos futuros ya están registrados, pero permanecen deshabilitados hasta
 6. Importar una sola vez `database/migrations/2026_09_02_moneda_por_presupuesto.sql`.
 7. Importar una sola vez `database/migrations/2026_09_02_iva_separado_presupuesto.sql`.
 8. Importar una sola vez `database/migrations/2026_09_03_perfiles_usuarios.sql`.
-9. Reemplazar los archivos de la aplicación conservando `config.php` y `storage/uploads`.
+9. Importar una sola vez `database/migrations/2026_09_03_productos_precios_stock.sql`.
+10. Reemplazar los archivos de la aplicación conservando `config.php` y `storage/uploads`.
 
 Cada proyecto trabaja íntegramente en ARS o USD; el sistema no convierte ni mezcla monedas. Cada pago genera automáticamente un recibo y se imputa a los cargos elegidos. Materiales y Mano de obra se mantienen separados. Cuando se carga el presupuesto final, lo abonado previamente como Ingeniería se transfiere automáticamente a Mano de obra.
