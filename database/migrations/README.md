@@ -15,3 +15,7 @@ Mueve la selección operativa de moneda a cada presupuesto y conserva la moneda 
 ### 2026_09_02_iva_separado_presupuesto.sql
 
 Permite definir por separado el tratamiento y la alícuota de IVA de Materiales y Mano de obra. Los presupuestos existentes conservan en ambos conceptos la configuración de IVA que ya tenían.
+
+### 2026_09_03_perfiles_usuarios.sql
+
+Agrega perfiles de usuario por área y permisos independientes para ver o gestionar cada módulo. Los administradores mantienen acceso total.
