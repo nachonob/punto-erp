@@ -6,7 +6,7 @@ if($a==='quotes'){
  exit;
 }
 if(in_array($a,['new_quote','save_quote','quote_view','quote_print'],true)){
- require __DIR__.'/app/Modules/Quotes/module.php';
+ require __DIR__.'/app/Modules/Quotes/module_v2.php';
  exit;
 }
 $module=$_GET['module']??'accounts';
