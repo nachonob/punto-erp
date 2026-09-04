@@ -1,6 +1,6 @@
 # Punto ERP
 
-ERP modular. La primera versión habilita **Cuentas por cobrar**: clientes, proyectos, presupuestos versionados, materiales, mano de obra, adelanto de ingeniería no reintegrable, pagos, imputaciones y recibos por email/WhatsApp.
+ERP modular. La versión actual incluye **Cuentas por cobrar** y un catálogo de **Productos** con categorías, múltiples listas de precios, imágenes y control de stock.
 
 ## Instalación nueva en Ferozo
 1. Crear la carpeta `punto-erp` dentro de `public_html`.
@@ -18,6 +18,8 @@ ERP modular. La primera versión habilita **Cuentas por cobrar**: clientes, proy
 - `storage`: adjuntos y registros privados.
 - `config.php`: configuración local no incluida en el ZIP.
 
+`config.php` y los archivos de `storage/uploads` contienen información privada y no deben subirse al repositorio. El despliegue automático los conserva en el hosting.
+
 Los módulos futuros ya están registrados, pero permanecen deshabilitados hasta ser desarrollados.
 
 ## Actualización de una instalación existente
@@ -25,6 +27,14 @@ Los módulos futuros ya están registrados, pero permanecen deshabilitados hasta
 1. Hacer una copia de seguridad de la base de datos.
 2. Importar una sola vez `database/migrations/2026_08_28_clientes_datos_fiscales.sql`.
 3. Importar una sola vez `database/migrations/2026_08_28_monedas_y_recibos.sql`.
-4. Reemplazar los archivos de la aplicación conservando `config.php` y `storage/uploads`.
+4. Importar una sola vez `database/migrations/2026_09_02_arquitectos_constructoras.sql`.
+5. Importar una sola vez `database/migrations/2026_09_02_presupuestos_por_rubro.sql`.
+6. Importar una sola vez `database/migrations/2026_09_02_moneda_por_presupuesto.sql`.
+7. Importar una sola vez `database/migrations/2026_09_02_iva_separado_presupuesto.sql`.
+8. Importar una sola vez `database/migrations/2026_09_03_perfiles_usuarios.sql`.
+9. Importar una sola vez `database/migrations/2026_09_03_productos_precios_stock.sql`.
+10. Importar una sola vez `database/migrations/2026_09_03_moneda_por_precio_producto.sql`.
+11. Importar una sola vez `database/migrations/2026_09_04_productos_usd_categorias_codigos.sql`.
+12. Reemplazar los archivos de la aplicación conservando `config.php` y `storage/uploads`.
 
 Cada proyecto trabaja íntegramente en ARS o USD; el sistema no convierte ni mezcla monedas. Cada pago genera automáticamente un recibo y se imputa a los cargos elegidos. Materiales y Mano de obra se mantienen separados. Cuando se carga el presupuesto final, lo abonado previamente como Ingeniería se transfiere automáticamente a Mano de obra.
