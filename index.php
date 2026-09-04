@@ -14,7 +14,7 @@ if(in_array($a,['products','new_product','edit_product','save_product','update_p
  exit;
 }
 if(in_array($a,['inventory','inventory_movements','warehouses','inventory_transfer','inventory_reorder','save_warehouse','update_min_stock','save_inventory_movement','save_inventory_transfer'],true)){
- require __DIR__.'/app/Modules/Inventory/module.php';
+ require __DIR__.'/app/Modules/Inventory/module_v2.php';
  exit;
 }
 $module=$_GET['module']??'accounts';
@@ -25,4 +25,4 @@ if(empty($registry[$module]['enabled'])){
  exit;
 }
 require __DIR__.'/'.$registry[$module]['entry'];
-?><script>(function(){const nav=document.querySelector('.sidebar-nav');if(!nav)return;if(!nav.querySelector('a[href="?a=quotes"]')){const link=document.createElement('a');link.href='?a=quotes';link.innerHTML='<span class="nav-icon">▥</span>Presupuestos';const projectLink=nav.querySelector('a[href="?a=projects"]');if(projectLink&&projectLink.parentNode===nav){projectLink.insertAdjacentElement('afterend',link)}else{nav.appendChild(link)}}if(!nav.querySelector('a[href="?a=inventory"]')){const link=document.createElement('a');link.href='?a=inventory';link.innerHTML='<span class="nav-icon">▦</span>Inventario';const productLink=nav.querySelector('a[href="?a=products"]');if(productLink){const group=productLink.closest('.nav-group');if(group&&group.parentNode===nav){group.insertAdjacentElement('afterend',link)}else{productLink.insertAdjacentElement('afterend',link)}}else{nav.appendChild(link)}}})();</script>
+?><script>(function(){const nav=document.querySelector('.sidebar-nav');if(!nav||nav.querySelector('a[href="?a=quotes"]'))return;const link=document.createElement('a');link.href='?a=quotes';link.innerHTML='<span class="nav-icon">▥</span>Presupuestos';const projectLink=nav.querySelector('a[href="?a=projects"]');if(projectLink&&projectLink.parentNode===nav){projectLink.insertAdjacentElement('afterend',link)}else{nav.appendChild(link)}})();</script>
