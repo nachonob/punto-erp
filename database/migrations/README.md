@@ -27,3 +27,7 @@ Crea productos, categorías, múltiples listas de precios, imágenes y movimient
 ### 2026_09_03_moneda_por_precio_producto.sql
 
 Permite elegir ARS o USD en el precio de cada producto, aunque pertenezcan a una misma lista.
+
+### 2026_09_04_productos_usd_categorias_codigos.sql
+
+Pasa todos los precios a USD y corrige los productos importados donde el código y el nombre descriptivo estaban invertidos. La interfaz permite administrar las categorías.
