@@ -35,3 +35,7 @@ Pasa todos los precios a USD y corrige los productos importados donde el código
 ### 2026_09_04_lista_gremio_descuento.sql
 
 Configura la lista Gremio en USD con un descuento inicial del 18% sobre la Lista general. Agrega la posibilidad de relacionar listas y recalcular sus precios por porcentaje, manteniendo la edición manual por producto.
+
+### 2026_09_04_tipos_producto.sql
+
+Reemplaza los tipos anteriores por Bienes, Servicio y Combinación. Los productos existentes se convierten automáticamente sin perder información.
