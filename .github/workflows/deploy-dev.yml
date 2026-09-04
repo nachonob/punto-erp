@@ -3,7 +3,7 @@ name: Deploy ERP DEV
 on:
   push:
     branches:
-      - main
+      - desarrollo/arquitectos-constructoras
 
 jobs:
   deploy:
@@ -22,3 +22,8 @@ jobs:
           protocol: ftps
           port: 21
           server-dir: /public_html/erp-dev/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            config.php
+            storage/uploads/**
