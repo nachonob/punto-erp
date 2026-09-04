@@ -23,3 +23,7 @@ Agrega perfiles de usuario por área y permisos independientes para ver o gestio
 ### 2026_09_03_productos_precios_stock.sql
 
 Crea productos, categorías, múltiples listas de precios, imágenes y movimientos de stock. También importa los 323 registros del Excel inicial, incluidas sus 43 imágenes disponibles.
+
+### 2026_09_03_moneda_por_precio_producto.sql
+
+Permite elegir ARS o USD en el precio de cada producto, aunque pertenezcan a una misma lista.

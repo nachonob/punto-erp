@@ -33,6 +33,7 @@ Los módulos futuros ya están registrados, pero permanecen deshabilitados hasta
 7. Importar una sola vez `database/migrations/2026_09_02_iva_separado_presupuesto.sql`.
 8. Importar una sola vez `database/migrations/2026_09_03_perfiles_usuarios.sql`.
 9. Importar una sola vez `database/migrations/2026_09_03_productos_precios_stock.sql`.
-10. Reemplazar los archivos de la aplicación conservando `config.php` y `storage/uploads`.
+10. Importar una sola vez `database/migrations/2026_09_03_moneda_por_precio_producto.sql`.
+11. Reemplazar los archivos de la aplicación conservando `config.php` y `storage/uploads`.
 
 Cada proyecto trabaja íntegramente en ARS o USD; el sistema no convierte ni mezcla monedas. Cada pago genera automáticamente un recibo y se imputa a los cargos elegidos. Materiales y Mano de obra se mantienen separados. Cuando se carga el presupuesto final, lo abonado previamente como Ingeniería se transfiere automáticamente a Mano de obra.
