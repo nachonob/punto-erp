@@ -1,0 +1,17 @@
+ALTER TABLE quotes
+  ADD COLUMN quote_families VARCHAR(120) NULL AFTER quote_date;
+
+CREATE TABLE quote_items (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  quote_id INT UNSIGNED NOT NULL,
+  category VARCHAR(80) NOT NULL,
+  brand VARCHAR(80) NOT NULL,
+  description VARCHAR(255) NOT NULL,
+  quantity DECIMAL(12,2) NOT NULL DEFAULT 1,
+  unit_price DECIMAL(15,2) NOT NULL DEFAULT 0,
+  subtotal DECIMAL(15,2) NOT NULL DEFAULT 0,
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX(quote_id, sort_order),
+  CONSTRAINT fk_quote_items_quote FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
