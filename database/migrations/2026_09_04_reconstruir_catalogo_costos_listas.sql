@@ -33,6 +33,9 @@ SET @sql := IF(@fk IS NULL,'SELECT 1',CONCAT('ALTER TABLE quotes DROP FOREIGN KE
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- 3) Eliminar completamente la estructura vieja del catálogo.
+-- Hay instalaciones DEV con claves foráneas antiguas adicionales hacia products/price_lists.
+-- Desactivamos temporalmente la validación FK para poder reconstruir el catálogo limpio.
+SET FOREIGN_KEY_CHECKS=0;
 DROP TABLE IF EXISTS stock_movements;
 DROP TABLE IF EXISTS product_prices;
 DROP TABLE IF EXISTS products;
@@ -100,6 +103,8 @@ CREATE TABLE stock_movements (
   CONSTRAINT fk_stock_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+SET FOREIGN_KEY_CHECKS=1;
+
 -- 8) Asegurar columnas necesarias en presupuestos.
 SET @exists := (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=@db AND TABLE_NAME='quotes' AND COLUMN_NAME='quote_template_family');
 SET @sql := IF(@exists=0, "ALTER TABLE quotes ADD COLUMN quote_template_family ENUM('lifesmart','control4','shelly') NULL AFTER quote_families", 'SELECT 1');
@@ -143,15 +148,15 @@ SET @exists := (SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_S
 SET @sql := IF(@exists=0,'ALTER TABLE quote_items ADD INDEX idx_quote_items_price_list (price_list_id)','SELECT 1');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-SET @exists := (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=@db AND TABLE_NAME='quotes' AND CONSTRAINT_NAME='fk_quotes_price_list');
+SET @exists := (SELECT COUNT(*) FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=@db AND TABLE_NAME='quotes' AND COLUMN_NAME='price_list_id' AND REFERENCED_TABLE_NAME='price_lists');
 SET @sql := IF(@exists=0,'ALTER TABLE quotes ADD CONSTRAINT fk_quotes_price_list FOREIGN KEY (price_list_id) REFERENCES price_lists(id) ON DELETE SET NULL','SELECT 1');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-SET @exists := (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=@db AND TABLE_NAME='quote_items' AND CONSTRAINT_NAME='fk_quote_items_product');
+SET @exists := (SELECT COUNT(*) FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=@db AND TABLE_NAME='quote_items' AND COLUMN_NAME='product_id' AND REFERENCED_TABLE_NAME='products');
 SET @sql := IF(@exists=0,'ALTER TABLE quote_items ADD CONSTRAINT fk_quote_items_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL','SELECT 1');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-SET @exists := (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=@db AND TABLE_NAME='quote_items' AND CONSTRAINT_NAME='fk_quote_items_price_list');
+SET @exists := (SELECT COUNT(*) FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=@db AND TABLE_NAME='quote_items' AND COLUMN_NAME='price_list_id' AND REFERENCED_TABLE_NAME='price_lists');
 SET @sql := IF(@exists=0,'ALTER TABLE quote_items ADD CONSTRAINT fk_quote_items_price_list FOREIGN KEY (price_list_id) REFERENCES price_lists(id) ON DELETE SET NULL','SELECT 1');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
@@ -200,3 +205,6 @@ INSERT INTO products(sku,description,cost_usd,category_id,unit,track_stock,stock
 SELECT COUNT(*) AS productos_importados FROM products;
 SELECT id,name,markup_percentage,active FROM price_lists ORDER BY id;
 SELECT sku,description,cost_usd FROM products ORDER BY id LIMIT 10;
+
+-- Seguridad: dejar validación de claves foráneas activa al finalizar.
+SET FOREIGN_KEY_CHECKS=1;
