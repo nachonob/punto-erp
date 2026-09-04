@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS price_lists (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(150) NOT NULL,
   currency ENUM('ARS','USD') NOT NULL,
+  base_price_list_id INT UNSIGNED NULL,
+  discount_percentage DECIMAL(5,2) NULL,
   active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uq_price_list_name_currency(name,currency)
@@ -771,3 +773,11 @@ INSERT INTO products(id,category_id,product_type,sku,name,unit,favorite,track_st
 INSERT INTO product_prices(product_id,price_list_id,price,currency) VALUES(322,1,0.00,'USD') ON DUPLICATE KEY UPDATE price=VALUES(price),currency=VALUES(currency);
 INSERT INTO products(id,category_id,product_type,sku,name,unit,favorite,track_stock,stock_quantity,image_data,image_mime,source_key,source_updated_at,active) VALUES(323,NULL,'producto',NULL,'l125','Unidades',0,0,0.000,NULL,NULL,'odoo-row-323','2025-09-12 15:39:33',1) ON DUPLICATE KEY UPDATE category_id=VALUES(category_id),product_type=VALUES(product_type),sku=VALUES(sku),name=VALUES(name),unit=VALUES(unit),favorite=VALUES(favorite),track_stock=VALUES(track_stock),stock_quantity=VALUES(stock_quantity),image_data=COALESCE(VALUES(image_data),image_data),image_mime=COALESCE(VALUES(image_mime),image_mime),source_updated_at=VALUES(source_updated_at);
 INSERT INTO product_prices(product_id,price_list_id,price,currency) VALUES(323,1,0.00,'USD') ON DUPLICATE KEY UPDATE price=VALUES(price),currency=VALUES(currency);
+
+INSERT INTO price_lists(name,currency,base_price_list_id,discount_percentage,active)
+VALUES('Gremio','USD',1,18.00,1)
+ON DUPLICATE KEY UPDATE currency='USD',base_price_list_id=1,discount_percentage=18.00,active=1;
+SET @gremio_list_id := (SELECT id FROM price_lists WHERE LOWER(name)='gremio' ORDER BY id LIMIT 1);
+INSERT INTO product_prices(product_id,price_list_id,price,currency)
+SELECT product_id,@gremio_list_id,ROUND(price*0.82,2),currency FROM product_prices WHERE price_list_id=1
+ON DUPLICATE KEY UPDATE price=VALUES(price),currency=VALUES(currency);

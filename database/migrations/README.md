@@ -31,3 +31,7 @@ Permite elegir ARS o USD en el precio de cada producto, aunque pertenezcan a una
 ### 2026_09_04_productos_usd_categorias_codigos.sql
 
 Pasa todos los precios a USD y corrige los productos importados donde el código y el nombre descriptivo estaban invertidos. La interfaz permite administrar las categorías.
+
+### 2026_09_04_lista_gremio_descuento.sql
+
+Configura la lista Gremio en USD con un descuento inicial del 18% sobre la Lista general. Agrega la posibilidad de relacionar listas y recalcular sus precios por porcentaje, manteniendo la edición manual por producto.
