@@ -6,7 +6,11 @@ if($a==='quotes'){
  exit;
 }
 if(in_array($a,['new_quote','save_quote','quote_view','quote_print'],true)){
- require __DIR__.'/app/Modules/Quotes/module_v2.php';
+ require __DIR__.'/app/Modules/Quotes/module_v3.php';
+ exit;
+}
+if(in_array($a,['products','new_product','edit_product','save_product','update_product','price_lists','save_price_list','update_price_list','product_categories','save_product_category','update_product_category','stock_movement','save_stock_movement'],true)){
+ require __DIR__.'/app/Modules/Products/module_costs.php';
  exit;
 }
 $module=$_GET['module']??'accounts';
