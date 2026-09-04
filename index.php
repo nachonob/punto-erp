@@ -25,4 +25,8 @@ if(empty($registry[$module]['enabled'])){
  exit;
 }
 require __DIR__.'/'.$registry[$module]['entry'];
-?><script>(function(){const nav=document.querySelector('.sidebar-nav');if(!nav||nav.querySelector('a[href="?a=quotes"]'))return;const link=document.createElement('a');link.href='?a=quotes';link.innerHTML='<span class="nav-icon">▥</span>Presupuestos';const projectLink=nav.querySelector('a[href="?a=projects"]');if(projectLink&&projectLink.parentNode===nav){projectLink.insertAdjacentElement('afterend',link)}else{nav.appendChild(link)}})();</script>
+?><script>(function(){
+ const nav=document.querySelector('.sidebar-nav');if(!nav)return;
+ if(!nav.querySelector('a[href="?a=quotes"]')){const link=document.createElement('a');link.href='?a=quotes';link.innerHTML='<span class="nav-icon">▥</span>Presupuestos';const projectLink=nav.querySelector('a[href="?a=projects"]');if(projectLink&&projectLink.parentNode===nav){projectLink.insertAdjacentElement('afterend',link)}else{nav.appendChild(link)}}
+ if(!nav.querySelector('a[href="?a=inventory"]')){const group=document.createElement('div');group.className='nav-group';group.innerHTML='<div class="nav-group-title"><span class="nav-icon">▣</span>Inventario</div><div class="nav-submenu"><a href="?a=inventory">Stock actual</a><a href="?a=inventory_movements">Movimientos</a><a href="?a=warehouses">Depósitos</a><a href="?a=inventory_transfer">Transferencias</a><a href="?a=inventory_reorder">Reposición</a></div>';const sales=Array.from(nav.querySelectorAll('.nav-group')).find(g=>g.textContent.includes('Ventas'));if(sales)sales.insertAdjacentElement('afterend',group);else nav.appendChild(group)}
+})();</script>
