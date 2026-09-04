@@ -3,8 +3,7 @@ name: Deploy ERP DEV
 on:
   push:
     branches:
-      - main
-      - desarrollo/edicion-proyectos
+      - desarrollo/arquitectos-constructoras
 
 jobs:
   deploy:
