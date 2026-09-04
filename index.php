@@ -2,7 +2,7 @@
 declare(strict_types=1);
 $a=$_GET['a']??'';
 if($a==='quotes'){
- require __DIR__.'/app/Modules/Quotes/list.php';
+ require __DIR__.'/app/Modules/Quotes/list_v2.php';
  exit;
 }
 if(in_array($a,['new_quote','save_quote','quote_view','quote_print'],true)){
@@ -13,7 +13,11 @@ if(in_array($a,['products','new_product','edit_product','save_product','update_p
  require __DIR__.'/app/Modules/Products/module_costs.php';
  exit;
 }
-if(in_array($a,['inventory','inventory_movements','warehouses','inventory_transfer','inventory_reorder','save_warehouse','update_min_stock','save_inventory_movement','save_inventory_transfer'],true)){
+if(in_array($a,['inventory_movements','save_inventory_movement'],true)){
+ require __DIR__.'/app/Modules/Inventory/movements.php';
+ exit;
+}
+if(in_array($a,['inventory','warehouses','inventory_transfer','inventory_reorder','save_warehouse','update_min_stock','save_inventory_transfer'],true)){
  require __DIR__.'/app/Modules/Inventory/module_v2.php';
  exit;
 }
