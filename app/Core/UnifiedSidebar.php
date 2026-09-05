@@ -2,7 +2,7 @@
 declare(strict_types=1);
 function erpIsAdmin():bool{return ($_SESSION['user']['role']??'')==='admin';}
 function erpCanView(string $module):bool{if(erpIsAdmin())return true;$p=$_SESSION['user']['permissions']??[];if(!$p)return true;return !empty($p[$module]['view']);}
-function erpSidebar(string $current=''):void{$u=$_SESSION['user']??[];$inv=['inventory','inventory_movements','warehouses','inventory_transfer','inventory_reorder','save_inventory_movement','save_inventory_transfer','save_warehouse','update_min_stock'];$prod=['products','new_product','edit_product','product_categories','price_lists'];$proj=['projects','project','new_project','edit_project'];$quotes=['quotes','new_quote','quote_view','quote_print'];?>
+function erpSidebar(string $current=''):void{$u=$_SESSION['user']??[];$inv=['inventory','inventory_movements','warehouses','inventory_transfer','inventory_reorder','save_inventory_movement','save_inventory_transfer','save_warehouse','update_min_stock'];$prod=['products','new_product','edit_product','product_categories','price_lists'];$proj=['projects','project','new_project','edit_project'];$quotes=['quotes','new_quote','save_quote','edit_quote','update_quote','quote_view','quote_print'];?>
 <aside class="sidebar" id="sidebar"><div class="sidebar-brand"><strong><i>●</i> Punto ERP</strong><span>Gestión administrativa</span></div><nav class="sidebar-nav">
 <?php if(erpCanView('dashboard')):?><a class="<?=$current==='dashboard'?'active':''?>" href="index.php"><span class="nav-icon">▦</span>Panel general</a><?php endif;?>
 <?php if(erpCanView('clients')):?><a class="<?=in_array($current,['clients','new_client','edit_client'],true)?'active':''?>" href="?a=clients"><span class="nav-icon">◇</span>Clientes</a><?php endif;?>
