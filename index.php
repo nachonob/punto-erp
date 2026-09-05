@@ -9,6 +9,10 @@ if($a==='quote_pdf_assets'){
  require __DIR__.'/app/Modules/Quotes/pdf_assets_admin.php';
  exit;
 }
+if($a==='quote_pdf_asset'){
+ require __DIR__.'/app/Modules/Quotes/pdf_asset.php';
+ exit;
+}
 if(in_array($a,['quote_view','quote_print'],true)){
  require __DIR__.'/app/Modules/Quotes/print_v3.php';
  exit;
