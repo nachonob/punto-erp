@@ -17,6 +17,14 @@ function remoteDataUri(string $url):string{
  if($data===false){$ctx=stream_context_create(['http'=>['timeout'=>8,'header'=>"User-Agent: PuntoERP/1.0\r\n"]]);$data=@file_get_contents($url,false,$ctx);}
  return ($data!==false&&$data!=='')?'data:'.$type.';base64,'.base64_encode($data):'';
 }
+function normalizeFamily(string $value):string{
+ $v=strtolower(trim($value));
+ $v=str_replace([' ','-','_'],'',$v);
+ if(in_array($v,['lifesmart','lifemar','lightsmart'],true))return 'lifesmart';
+ if(in_array($v,['control4','controlfour'],true))return 'control4';
+ if($v==='shelly'||$v==='shelley')return 'shelly';
+ return '';
+}
 $id=(int)($_GET['id']??0);
 $s=$db->prepare("SELECT q.*,p.project_number,p.name project_name,p.engineering_pct,c.business_name,c.contact_name,c.cuit,c.email,c.whatsapp,c.address,c.city,c.province,pp.business_name partner_name,pl.name price_list_name FROM quotes q JOIN projects p ON p.id=q.project_id JOIN clients c ON c.id=p.client_id LEFT JOIN project_partners pp ON pp.id=p.partner_id LEFT JOIN price_lists pl ON pl.id=q.price_list_id WHERE q.id=?");
 $s->execute([$id]);$q=$s->fetch();if(!$q)exit('Presupuesto inexistente.');
@@ -24,8 +32,11 @@ $s=$db->prepare("SELECT qi.*,p.image_data,p.image_mime FROM quote_items qi LEFT 
 $s->execute([$id]);$items=$s->fetchAll();
 $logo=remoteDataUri('https://puntodomotica.com/assets/images/cropped-logo-blanco-63892739ae.png');
 $families=array_filter(array_map('trim',explode(',',(string)($q['quote_families']??''))));
-$template=(string)($q['quote_template_family']??($families[0]??''));
-$familyLabel=['lifesmart'=>'LifeSmart','control4'=>'Control4','shelly'=>'Shelly'][$template]??ucfirst($template);
+$familySource=(string)($q['quote_template_family']??'');
+if($familySource==='')$familySource=(string)($q['primary_family']??'');
+if($familySource===''&&!empty($families))$familySource=(string)$families[0];
+$template=normalizeFamily($familySource);
+$familyLabel=['lifesmart'=>'LifeSmart','control4'=>'Control4','shelly'=>'Shelly'][$template]??'Sin definir';
 $mat=(float)$q['materials_amount'];$lab=(float)$q['labor_amount'];
 $matMode=(string)($q['materials_tax_mode']??'sin_iva');$matVat=(float)($q['materials_vat_rate']??21);
 $labMode=(string)($q['labor_tax_mode']??'sin_iva');$labVat=(float)($q['labor_vat_rate']??21);
@@ -49,9 +60,13 @@ $matTotal=taxTotal($mat,$matMode,$matVat);$labTotal=taxTotal($lab,$labMode,$labV
 </section>
 <div class="screen-note">El PDF final se genera en este orden: <b>prólogo <?=e($familyLabel)?> → presupuesto → forma de pago</b>.</div>
 <script>
-const quoteFamily=<?=json_encode($template,JSON_UNESCAPED_SLASHES)?>;const pdfFilename=<?=json_encode('Presupuesto-'.$q['project_number'].'-v'.$q['version_no'].'.pdf',JSON_UNESCAPED_SLASHES)?>;const prologueUrl='?a=quote_pdf_asset&type=prologo&family='+encodeURIComponent(quoteFamily);const paymentUrl='?a=quote_pdf_asset&type=pago&family='+encodeURIComponent(quoteFamily);
+const quoteFamily=<?=json_encode($template,JSON_UNESCAPED_SLASHES)?>;
+const familyLabel=<?=json_encode($familyLabel,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)?>;
+const pdfFilename=<?=json_encode('Presupuesto-'.$q['project_number'].'-v'.$q['version_no'].'.pdf',JSON_UNESCAPED_SLASHES)?>;
+const prologueUrl='?a=quote_pdf_asset&type=prologo&family='+encodeURIComponent(quoteFamily);
+const paymentUrl='?a=quote_pdf_asset&type=pago&family='+encodeURIComponent(quoteFamily);
 async function waitForImages(root){await Promise.all(Array.from(root.querySelectorAll('img')).map(img=>img.complete&&img.naturalWidth?Promise.resolve():new Promise(res=>{img.addEventListener('load',res,{once:true});img.addEventListener('error',res,{once:true});setTimeout(res,5000);})));}
 async function quotePdfFromScreen(){const sheet=document.getElementById('quoteSheet');await waitForImages(sheet);await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));if(typeof html2canvas!=='function')throw new Error('No se cargó el motor de captura.');const canvas=await html2canvas(sheet,{scale:2,useCORS:true,allowTaint:false,backgroundColor:'#ffffff',logging:false,scrollX:0,scrollY:0,width:sheet.scrollWidth,height:sheet.scrollHeight,windowWidth:sheet.scrollWidth,windowHeight:sheet.scrollHeight});const pdf=await PDFLib.PDFDocument.create();const pageWidth=595.28,pageHeight=841.89;const png=await pdf.embedPng(canvas.toDataURL('image/png'));const scale=Math.min(pageWidth/png.width,pageHeight/png.height);const w=png.width*scale,h=png.height*scale;const page=pdf.addPage([pageWidth,pageHeight]);page.drawImage(png,{x:(pageWidth-w)/2,y:pageHeight-h,width:w,height:h});return pdf;}
-async function appendPdf(target,url,required=false){try{const r=await fetch(url,{cache:'no-store'});if(!r.ok){if(required)throw new Error('No se pudo cargar '+url);return false;}const src=await PDFLib.PDFDocument.load(await r.arrayBuffer());const pages=await target.copyPages(src,src.getPageIndices());pages.forEach(p=>target.addPage(p));return true;}catch(err){if(required)throw err;return false;}}
-async function generatePdf(){const btn=document.getElementById('generatePdfBtn');const old=btn.textContent;btn.disabled=true;btn.textContent='Generando PDF...';try{const quotePdf=await quotePdfFromScreen();const finalPdf=await PDFLib.PDFDocument.create();await appendPdf(finalPdf,prologueUrl,false);const qPages=await finalPdf.copyPages(quotePdf,quotePdf.getPageIndices());qPages.forEach(p=>finalPdf.addPage(p));await appendPdf(finalPdf,paymentUrl,true);const bytes=await finalPdf.save();const blob=new Blob([bytes],{type:'application/pdf'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=pdfFilename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);}catch(err){console.error(err);alert('No pude generar el PDF final. '+(err&&err.message?err.message:''));}finally{btn.disabled=false;btn.textContent=old;}}
+async function appendPdf(target,url,required=false,label='PDF'){try{const r=await fetch(url,{cache:'no-store'});if(!r.ok){if(required)throw new Error('Falta '+label+'. Cargalo en Presupuestos → Archivos PDF.');return false;}const src=await PDFLib.PDFDocument.load(await r.arrayBuffer());const pages=await target.copyPages(src,src.getPageIndices());pages.forEach(p=>target.addPage(p));return true;}catch(err){if(required)throw err;return false;}}
+async function generatePdf(){const btn=document.getElementById('generatePdfBtn');const old=btn.textContent;btn.disabled=true;btn.textContent='Generando PDF...';try{if(!quoteFamily)throw new Error('El presupuesto no tiene definida la familia principal. Editalo y elegí LifeSmart, Control4 o Shelly.');const quotePdf=await quotePdfFromScreen();const finalPdf=await PDFLib.PDFDocument.create();await appendPdf(finalPdf,prologueUrl,true,'el prólogo de '+familyLabel);const qPages=await finalPdf.copyPages(quotePdf,quotePdf.getPageIndices());qPages.forEach(p=>finalPdf.addPage(p));await appendPdf(finalPdf,paymentUrl,true,'la forma de pago de '+familyLabel);const bytes=await finalPdf.save();const blob=new Blob([bytes],{type:'application/pdf'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=pdfFilename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);}catch(err){console.error(err);alert('No pude generar el PDF final. '+(err&&err.message?err.message:''));}finally{btn.disabled=false;btn.textContent=old;}}
 </script></body></html>
