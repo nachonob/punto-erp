@@ -13,6 +13,17 @@ function erpSidebar(string $current=''):void{$u=$_SESSION['user']??[];$inv=['inv
 <?php if(erpCanView('receipts')):?><a class="<?=in_array($current,['receipts','receipt','new_payment'],true)?'active':''?>" href="?a=receipts"><span class="nav-icon">▧</span>Recibos y pagos</a><?php endif;?>
 <?php if(erpIsAdmin()):?><a class="<?=in_array($current,['users','profiles','edit_profile'],true)?'active':''?>" href="?a=users"><span class="nav-icon">○</span>Perfiles y usuarios</a><?php endif;?>
 </nav><div class="sidebar-user"><small><?=erpIsAdmin()?'Administrador':htmlspecialchars((string)($u['profile_name']??'Usuario'),ENT_QUOTES,'UTF-8')?></small><strong><?=htmlspecialchars((string)($u['name']??'Usuario'),ENT_QUOTES,'UTF-8')?></strong><a href="?a=logout">Cerrar sesión</a></div></aside><div class="sidebar-overlay" onclick="document.getElementById('sidebar').classList.toggle('open')"></div>
+<style>
+#items td:nth-child(1),#items~*{} 
+#items td:nth-child(1){position:relative}
+#items td:nth-child(2) .suggest-wrap{min-width:0;width:100%}
+#items td:nth-child(2) .desc-input{width:100%;min-width:0}
+#items td:nth-child(3){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#items tr.dragging{opacity:.45;background:#fff5ee}
+#items tr.drag-over{box-shadow:inset 0 3px 0 #ff6702}
+.drag-handle{position:absolute;left:-17px;top:50%;transform:translateY(-50%);cursor:grab;color:#9aa3ad;font-size:18px;line-height:1;user-select:none;padding:8px 4px}
+.drag-handle:active{cursor:grabbing}
+</style>
 <script>
 document.addEventListener('DOMContentLoaded',function(){
  const select=document.getElementById('laborPreset'),input=document.getElementById('laborDescription');
@@ -27,9 +38,35 @@ document.addEventListener('DOMContentLoaded',function(){
   const scroller=items.closest('div[style*="overflow:auto"]');
   if(scroller){scroller.style.overflow='visible';scroller.style.width='100%';}
   const table=items.closest('table');
-  if(table){table.style.width='100%';table.style.tableLayout='fixed';}
+  if(table){
+   table.style.width='100%';table.style.tableLayout='fixed';
+   const heads=table.querySelectorAll('thead th');
+   const widths=['16%','30%','11%','8%','15%','15%','5%'];
+   heads.forEach(function(th,i){if(widths[i])th.style.setProperty('width',widths[i],'important')});
+  }
   const card=items.closest('.card');
   if(card){card.style.overflow='visible';card.style.minHeight='360px';}
+
+  let dragged=null;
+  function renumberRows(){
+   Array.from(items.querySelectorAll('tr')).forEach(function(tr,index){
+    tr.querySelectorAll('[name]').forEach(function(el){
+     el.name=el.name.replace(/items\[\d+\]/,'items['+index+']');
+    });
+   });
+  }
+  function prepareRow(tr){
+   if(!tr||tr.dataset.dragReady==='1')return;tr.dataset.dragReady='1';tr.draggable=true;
+   const first=tr.cells&&tr.cells[0];
+   if(first&&!first.querySelector('.drag-handle')){const h=document.createElement('span');h.className='drag-handle';h.title='Arrastrar para cambiar posición';h.textContent='⋮⋮';first.prepend(h)}
+   tr.addEventListener('dragstart',function(ev){if(!ev.target.closest('.drag-handle')){ev.preventDefault();return}dragged=tr;tr.classList.add('dragging');ev.dataTransfer.effectAllowed='move';ev.dataTransfer.setData('text/plain','move')});
+   tr.addEventListener('dragend',function(){tr.classList.remove('dragging');items.querySelectorAll('.drag-over').forEach(function(r){r.classList.remove('drag-over')});dragged=null;renumberRows();if(typeof calc==='function')calc()});
+   tr.addEventListener('dragover',function(ev){if(!dragged||dragged===tr)return;ev.preventDefault();tr.classList.add('drag-over');const rect=tr.getBoundingClientRect();const after=ev.clientY>rect.top+rect.height/2;items.insertBefore(dragged,after?tr.nextSibling:tr)});
+   tr.addEventListener('dragleave',function(){tr.classList.remove('drag-over')});
+   tr.addEventListener('drop',function(ev){ev.preventDefault();tr.classList.remove('drag-over');renumberRows();if(typeof calc==='function')calc()});
+  }
+  Array.from(items.querySelectorAll('tr')).forEach(prepareRow);
+  new MutationObserver(function(mutations){mutations.forEach(function(m){m.addedNodes.forEach(function(n){if(n.nodeType===1&&n.tagName==='TR')prepareRow(n)})});renumberRows()}).observe(items,{childList:true});
  }
  function quoteSearchInput(el){return el&&el.matches&&el.matches('.sku-input,.desc-input')}
  function renderAllOrFiltered(el){
@@ -40,7 +77,7 @@ document.addEventListener('DOMContentLoaded',function(){
   if(q!=='')matches=matches.filter(function(p){const value=isSku?String(p.sku||''):String(p.description||'');return value.toLowerCase().includes(q)});
   matches.sort(function(a,b){const av=isSku?String(a.sku||''):String(a.description||'');const bv=isSku?String(b.sku||''):String(b.description||'');return av.localeCompare(bv,'es',{numeric:true,sensitivity:'base'})});
   box.innerHTML=matches.map(function(p){return '<div class="suggestion" data-id="'+p.id+'"><b>'+esc(p.sku)+'</b><span>'+esc(p.description)+'</span></div>'}).join('')||'<div class="suggestion">Sin coincidencias</div>';
-  box.style.display='block';box.style.maxHeight='340px';box.style.overflowY='auto';box.style.minWidth=isSku?'360px':'560px';box.style.width='max-content';box.style.maxWidth='70vw';
+  box.style.display='block';box.style.maxHeight='340px';box.style.overflowY='auto';box.style.minWidth=isSku?'360px':'620px';box.style.width='max-content';box.style.maxWidth='72vw';
   box.querySelectorAll('[data-id]').forEach(function(item){item.onmousedown=function(ev){ev.preventDefault();selectProduct(el.closest('tr'),item.dataset.id)}});
  }
  document.addEventListener('focusin',function(ev){if(quoteSearchInput(ev.target))renderAllOrFiltered(ev.target)});
