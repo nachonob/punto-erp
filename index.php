@@ -5,6 +5,10 @@ if($a==='quotes'){
  require __DIR__.'/app/Modules/Quotes/list_v2.php';
  exit;
 }
+if($a==='quote_pdf_assets'){
+ require __DIR__.'/app/Modules/Quotes/pdf_assets_admin.php';
+ exit;
+}
 if(in_array($a,['quote_view','quote_print'],true)){
  require __DIR__.'/app/Modules/Quotes/print_v3.php';
  exit;
