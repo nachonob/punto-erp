@@ -5,7 +5,11 @@ if($a==='quotes'){
  require __DIR__.'/app/Modules/Quotes/list_v2.php';
  exit;
 }
-if(in_array($a,['new_quote','save_quote','edit_quote','update_quote','quote_view','quote_print'],true)){
+if($a==='quote_print'){
+ require __DIR__.'/app/Modules/Quotes/print_v2.php';
+ exit;
+}
+if(in_array($a,['new_quote','save_quote','edit_quote','update_quote','quote_view'],true)){
  require __DIR__.'/app/Modules/Quotes/module_v5.php';
  exit;
 }
