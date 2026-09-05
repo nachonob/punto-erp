@@ -22,6 +22,15 @@ document.addEventListener('DOMContentLoaded',function(){
   const current=(input.value||'').trim();if(current===b){select.value=b}else if(current!==''&&current!==a){select.value='__manual__'}else{select.value=a;if(current==='')input.value=a}
   select.addEventListener('change',function(){if(this.value==='__manual__'){input.value='';input.focus()}else{input.value=this.value}});
  }
+ const items=document.getElementById('items');
+ if(items){
+  const scroller=items.closest('div[style*="overflow:auto"]');
+  if(scroller){scroller.style.overflow='visible';scroller.style.width='100%';}
+  const table=items.closest('table');
+  if(table){table.style.width='100%';table.style.tableLayout='fixed';}
+  const card=items.closest('.card');
+  if(card){card.style.overflow='visible';card.style.minHeight='360px';}
+ }
  function quoteSearchInput(el){return el&&el.matches&&el.matches('.sku-input,.desc-input')}
  function renderAllOrFiltered(el){
   if(typeof products==='undefined'||typeof selectProduct!=='function')return;
@@ -31,7 +40,8 @@ document.addEventListener('DOMContentLoaded',function(){
   if(q!=='')matches=matches.filter(function(p){const value=isSku?String(p.sku||''):String(p.description||'');return value.toLowerCase().includes(q)});
   matches.sort(function(a,b){const av=isSku?String(a.sku||''):String(a.description||'');const bv=isSku?String(b.sku||''):String(b.description||'');return av.localeCompare(bv,'es',{numeric:true,sensitivity:'base'})});
   box.innerHTML=matches.map(function(p){return '<div class="suggestion" data-id="'+p.id+'"><b>'+esc(p.sku)+'</b><span>'+esc(p.description)+'</span></div>'}).join('')||'<div class="suggestion">Sin coincidencias</div>';
-  box.style.display='block';box.querySelectorAll('[data-id]').forEach(function(item){item.onmousedown=function(ev){ev.preventDefault();selectProduct(el.closest('tr'),item.dataset.id)}});
+  box.style.display='block';box.style.maxHeight='340px';box.style.overflowY='auto';box.style.minWidth=isSku?'360px':'560px';box.style.width='max-content';box.style.maxWidth='70vw';
+  box.querySelectorAll('[data-id]').forEach(function(item){item.onmousedown=function(ev){ev.preventDefault();selectProduct(el.closest('tr'),item.dataset.id)}});
  }
  document.addEventListener('focusin',function(ev){if(quoteSearchInput(ev.target))renderAllOrFiltered(ev.target)});
  document.addEventListener('input',function(ev){if(quoteSearchInput(ev.target))renderAllOrFiltered(ev.target)});
