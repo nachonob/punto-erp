@@ -22,7 +22,7 @@ if(in_array($a,['new_quote','save_quote','edit_quote','update_quote'],true)){
  exit;
 }
 if($a==='project'){
- require __DIR__.'/app/Modules/Projects/detail_v2.php';
+ require __DIR__.'/app/Modules/Projects/detail_v3.php';
  exit;
 }
 if(in_array($a,['new_project','save_project'],true)){
