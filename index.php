@@ -29,6 +29,10 @@ if(in_array($a,['new_project','save_project'],true)){
  require __DIR__.'/app/Modules/Projects/new_v2.php';
  exit;
 }
+if(in_array($a,['receipts','payment_new_general','save_payment_general','edit_payment','update_payment'],true)){
+ require __DIR__.'/app/Modules/Receipts/module_v2.php';
+ exit;
+}
 if($a==='import_product_images'){
  require __DIR__.'/app/Modules/Products/import_images.php';
  exit;
