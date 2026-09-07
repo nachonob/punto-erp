@@ -57,6 +57,13 @@ document.addEventListener('DOMContentLoaded',function(){
   }
   function prepareRow(tr){
    if(!tr||tr.dataset.dragReady==='1')return;tr.dataset.dragReady='1';tr.draggable=true;
+   const qty=tr.querySelector('.qty');
+   if(qty){
+    qty.min='1';
+    qty.step='1';
+    if(Number(qty.value)<1||!Number.isFinite(Number(qty.value)))qty.value='1';
+    qty.addEventListener('change',function(){const n=Math.max(1,Math.round(Number(this.value)||1));this.value=String(n);if(typeof calc==='function')calc()});
+   }
    const first=tr.cells&&tr.cells[0];
    if(first&&!first.querySelector('.drag-handle')){const h=document.createElement('span');h.className='drag-handle';h.title='Arrastrar para cambiar posición';h.textContent='⋮⋮';first.prepend(h)}
    tr.addEventListener('dragstart',function(ev){if(!ev.target.closest('.drag-handle')){ev.preventDefault();return}dragged=tr;tr.classList.add('dragging');ev.dataTransfer.effectAllowed='move';ev.dataTransfer.setData('text/plain','move')});
