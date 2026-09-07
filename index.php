@@ -18,7 +18,7 @@ if(in_array($a,['quote_view','quote_print'],true)){
  exit;
 }
 if(in_array($a,['new_quote','save_quote','edit_quote','update_quote'],true)){
- require __DIR__.'/app/Modules/Quotes/module_v5.php';
+ require __DIR__.'/app/Modules/Quotes/module_v6.php';
  exit;
 }
 if($a==='project'){
@@ -34,7 +34,7 @@ if($a==='import_product_images'){
  exit;
 }
 if(in_array($a,['products','new_product','edit_product','save_product','update_product','price_lists','save_price_list','update_price_list','product_categories','save_product_category','update_product_category','stock_movement','save_stock_movement'],true)){
- require __DIR__.'/app/Modules/Products/module_costs.php';
+ require __DIR__.'/app/Modules/Products/module_costs_v2.php';
  exit;
 }
 if(in_array($a,['inventory_movements','save_inventory_movement'],true)){
