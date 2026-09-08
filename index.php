@@ -18,11 +18,11 @@ if($a==='quote_pdf_asset'){
  exit;
 }
 if(in_array($a,['quote_view','quote_print'],true)){
- require __DIR__.'/app/Modules/Quotes/print_v3.php';
+ require __DIR__.'/app/Modules/Quotes/print_v4.php';
  exit;
 }
 if(in_array($a,['new_quote','save_quote','edit_quote','update_quote'],true)){
- require __DIR__.'/app/Modules/Quotes/module_v7.php';
+ require __DIR__.'/app/Modules/Quotes/module_v8.php';
  exit;
 }
 if($a==='project'){
