@@ -1,6 +1,10 @@
 <?php
 declare(strict_types=1);
 $a=$_GET['a']??'';
+if(in_array($a,['clients','new_client','edit_client','save_client','update_client','delete_client'],true)){
+ require __DIR__.'/app/Modules/Clients/module_v2.php';
+ exit;
+}
 if($a==='quotes'){
  require __DIR__.'/app/Modules/Quotes/list_v2.php';
  exit;
