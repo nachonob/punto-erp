@@ -10,7 +10,9 @@ function fail(string $message, int $status = 400): never {
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') fail('Método no permitido.', 405);
 
-$erpRoots = [dirname(__DIR__,2).'/erp', dirname(__DIR__,2).'/erp-dev'];
+// Este archivo vive en /public_html/cotizar-proyecto/. El ERP es una carpeta hermana.
+$publicHtml = dirname(__DIR__);
+$erpRoots = [$publicHtml.'/erp', $publicHtml.'/erp-dev'];
 $cfg = null;
 $erpRoot = null;
 foreach ($erpRoots as $candidate) {
@@ -66,13 +68,11 @@ $plansAvailable = clean('planos') === 'si' ? 1 : 0;
 $plansPath = null;
 
 if ($plansAvailable) {
-    if (empty($_FILES['archivo_planos']) || $_FILES['archivo_planos']['error'] !== UPLOAD_ERR_OK) {
-        fail('Elegiste que tenés planos disponibles, pero no adjuntaste un PDF.');
-    }
+    if (empty($_FILES['archivo_planos']) || $_FILES['archivo_planos']['error'] !== UPLOAD_ERR_OK) fail('Elegiste que tenés planos disponibles, pero no adjuntaste un PDF.');
     if ((int)$_FILES['archivo_planos']['size'] > 15 * 1024 * 1024) fail('El PDF de planos supera el máximo de 15 MB.');
     $mime = (new finfo(FILEINFO_MIME_TYPE))->file($_FILES['archivo_planos']['tmp_name']);
     if ($mime !== 'application/pdf') fail('El archivo de planos debe ser PDF.');
-    $uploadDir = dirname(__DIR__,2).'/uploads/cotizaciones-planos';
+    $uploadDir = $publicHtml.'/uploads/cotizaciones-planos';
     if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) fail('No se pudo preparar la carpeta de planos.', 500);
     $safeName = 'planos-'.date('Ymd-His').'-'.bin2hex(random_bytes(6)).'.pdf';
     $full = $uploadDir.'/'.$safeName;
@@ -82,8 +82,6 @@ if ($plansAvailable) {
 
 try {
     $db->beginTransaction();
-
-    // Cada envío del formulario crea un cliente nuevo, tal como se definió para los leads web.
     $next = (int)$db->query('SELECT COALESCE(MAX(client_number),0)+1 FROM clients FOR UPDATE')->fetchColumn();
     $db->prepare('INSERT INTO clients(client_number,business_name,contact_name,cuit,iva_condition,email,whatsapp,address,city,province,country,notes,active) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,1)')
        ->execute([$next,$name,$name,'','consumidor_final',$email,$whatsapp,'',$location,'','Argentina','Alta automática desde cotizar-proyecto']);
@@ -92,72 +90,30 @@ try {
 
     $requestSeq = (int)$db->query('SELECT COALESCE(MAX(id),0)+1 FROM web_quote_requests FOR UPDATE')->fetchColumn();
     $requestNumber = 'WEB-'.date('Y').'-'.str_pad((string)$requestSeq,5,'0',STR_PAD_LEFT);
-
-    $payload = [
-        'estado'=>clean('estado'),'tipo'=>clean('tipo'),'superficie'=>intOrNull('superficie'),'plantas'=>intOrNull('plantas'),'fecha'=>clean('fecha'),
-        'dormitorios'=>intOrNull('dormitorios'),'banos'=>intOrNull('banos'),'ambientes'=>$rooms,'sistemas'=>$systems,'tipos_climatizacion'=>$climateTypes,
-        'cantidad_teclas'=>intOrNull('cantidad_teclas'),'cantidad_splits'=>intOrNull('cantidad_splits'),'cantidad_termostatos'=>intOrNull('cantidad_termostatos'),
-        'cantidad_cortinas'=>intOrNull('cantidad_cortinas'),'cantidad_camaras'=>intOrNull('cantidad_camaras'),'cantidad_cerraduras'=>intOrNull('cantidad_cerraduras'),
-        'cantidad_zonas_audio'=>intOrNull('cantidad_zonas_audio'),'planos'=>$plansAvailable,'presupuesto'=>clean('presupuesto'),'comentarios'=>clean('comentarios')
-    ];
-
+    $payload = ['estado'=>clean('estado'),'tipo'=>clean('tipo'),'superficie'=>intOrNull('superficie'),'plantas'=>intOrNull('plantas'),'fecha'=>clean('fecha'),'dormitorios'=>intOrNull('dormitorios'),'banos'=>intOrNull('banos'),'ambientes'=>$rooms,'sistemas'=>$systems,'tipos_climatizacion'=>$climateTypes,'cantidad_teclas'=>intOrNull('cantidad_teclas'),'cantidad_splits'=>intOrNull('cantidad_splits'),'cantidad_termostatos'=>intOrNull('cantidad_termostatos'),'cantidad_cortinas'=>intOrNull('cantidad_cortinas'),'cantidad_camaras'=>intOrNull('cantidad_camaras'),'cantidad_cerraduras'=>intOrNull('cantidad_cerraduras'),'cantidad_zonas_audio'=>intOrNull('cantidad_zonas_audio'),'planos'=>$plansAvailable,'presupuesto'=>clean('presupuesto'),'comentarios'=>clean('comentarios')];
     $sql = 'INSERT INTO web_quote_requests(request_number,client_id,contact_name,whatsapp,email,location,project_stage,property_type,surface_m2,floors,estimated_date,bedrooms,bathrooms,rooms,systems,climate_types,switches_qty,splits_qty,thermostats_qty,curtains_qty,cameras_qty,smart_locks_qty,audio_zones_qty,plans_available,plans_file,budget_range,comments,payload_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
-    $db->prepare($sql)->execute([
-        $requestNumber,$clientId,$name,$whatsapp,$email,$location,clean('estado'),clean('tipo'),intOrNull('superficie'),intOrNull('plantas'),clean('fecha'),intOrNull('dormitorios'),intOrNull('banos'),
-        implode(', ',$rooms),implode(', ',$systems),implode(', ',$climateTypes),intOrNull('cantidad_teclas'),intOrNull('cantidad_splits'),intOrNull('cantidad_termostatos'),intOrNull('cantidad_cortinas'),intOrNull('cantidad_camaras'),intOrNull('cantidad_cerraduras'),intOrNull('cantidad_zonas_audio'),$plansAvailable,$plansPath,clean('presupuesto'),clean('comentarios'),json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)
-    ]);
-
+    $db->prepare($sql)->execute([$requestNumber,$clientId,$name,$whatsapp,$email,$location,clean('estado'),clean('tipo'),intOrNull('superficie'),intOrNull('plantas'),clean('fecha'),intOrNull('dormitorios'),intOrNull('banos'),implode(', ',$rooms),implode(', ',$systems),implode(', ',$climateTypes),intOrNull('cantidad_teclas'),intOrNull('cantidad_splits'),intOrNull('cantidad_termostatos'),intOrNull('cantidad_cortinas'),intOrNull('cantidad_camaras'),intOrNull('cantidad_cerraduras'),intOrNull('cantidad_zonas_audio'),$plansAvailable,$plansPath,clean('presupuesto'),clean('comentarios'),json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)]);
     $db->commit();
 } catch (Throwable $e) {
     if ($db->inTransaction()) $db->rollBack();
-    if ($plansPath) @unlink(dirname(__DIR__,2).'/'.$plansPath);
+    if ($plansPath) @unlink($publicHtml.'/'.$plansPath);
     fail('La solicitud no pudo guardarse en el ERP. '.$e->getMessage(), 500);
 }
 
-$lines = [
-    'Hola Punto Domótica, completé el formulario de cotización.',
-    '',
-    'Solicitud: '.$requestNumber,
-    'Cliente N°: '.str_pad((string)$clientNumber,5,'0',STR_PAD_LEFT),
-    '',
-    'DATOS DE CONTACTO'
-];
-addLine($lines,'Nombre',$name);
-addLine($lines,'WhatsApp',$whatsapp);
-addLine($lines,'Email',$email);
-addLine($lines,'Ubicación',$location);
-$lines[]='';
-$lines[]='PROYECTO';
-addLine($lines,'Etapa',clean('estado'));
-addLine($lines,'Tipo de propiedad',clean('tipo'));
+$lines = ['Hola Punto Domótica, completé el formulario de cotización.','','Solicitud: '.$requestNumber,'Cliente N°: '.str_pad((string)$clientNumber,5,'0',STR_PAD_LEFT),'','DATOS DE CONTACTO'];
+addLine($lines,'Nombre',$name); addLine($lines,'WhatsApp',$whatsapp); addLine($lines,'Email',$email); addLine($lines,'Ubicación',$location);
+$lines[]=''; $lines[]='PROYECTO'; addLine($lines,'Etapa',clean('estado')); addLine($lines,'Tipo de propiedad',clean('tipo'));
 if (intOrNull('superficie') !== null) addLine($lines,'Superficie',intOrNull('superficie').' m²');
-addLine($lines,'Cantidad de plantas',intOrNull('plantas'));
-addLine($lines,'Fecha estimada',clean('fecha'));
-$lines[]='';
-$lines[]='AMBIENTES';
-addLine($lines,'Dormitorios',intOrNull('dormitorios'));
-addLine($lines,'Baños',intOrNull('banos'));
-addLine($lines,'Otros ambientes',$rooms);
-$lines[]='';
-$lines[]='SISTEMAS';
-addLine($lines,'Sistemas seleccionados',$systems);
-addLine($lines,'Tipo de climatización',$climateTypes);
+addLine($lines,'Cantidad de plantas',intOrNull('plantas')); addLine($lines,'Fecha estimada',clean('fecha'));
+$lines[]=''; $lines[]='AMBIENTES'; addLine($lines,'Dormitorios',intOrNull('dormitorios')); addLine($lines,'Baños',intOrNull('banos')); addLine($lines,'Otros ambientes',$rooms);
+$lines[]=''; $lines[]='SISTEMAS'; addLine($lines,'Sistemas seleccionados',$systems); addLine($lines,'Tipo de climatización',$climateTypes);
 if (in_array('Iluminación inteligente',$systems,true)) addLine($lines,'Cantidad de teclas',intOrNull('cantidad_teclas'));
-if (in_array('Climatización',$systems,true)) {
-    if (in_array('Split',$climateTypes,true)) addLine($lines,'Cantidad de splits',intOrNull('cantidad_splits'));
-    if (in_array('Losa radiante',$climateTypes,true) || in_array('Radiadores',$climateTypes,true)) addLine($lines,'Cantidad de termostatos',intOrNull('cantidad_termostatos'));
-}
+if (in_array('Climatización',$systems,true)) { if (in_array('Split',$climateTypes,true)) addLine($lines,'Cantidad de splits',intOrNull('cantidad_splits')); if (in_array('Losa radiante',$climateTypes,true) || in_array('Radiadores',$climateTypes,true)) addLine($lines,'Cantidad de termostatos',intOrNull('cantidad_termostatos')); }
 if (in_array('Cortinas y persianas',$systems,true)) addLine($lines,'Cantidad de cortinas o persianas',intOrNull('cantidad_cortinas'));
 if (in_array('Cámaras',$systems,true)) addLine($lines,'Cantidad de cámaras',intOrNull('cantidad_camaras'));
 if (in_array('Cerradura inteligente',$systems,true)) addLine($lines,'Cantidad de cerraduras inteligentes',intOrNull('cantidad_cerraduras'));
 if (in_array('Audio multizona',$systems,true)) addLine($lines,'Cantidad de zonas de audio',intOrNull('cantidad_zonas_audio'));
-$lines[]='';
-$lines[]='DETALLES';
-addLine($lines,'Planos',$plansAvailable ? 'Sí, PDF adjuntado' : 'No');
-addLine($lines,'Presupuesto orientativo',clean('presupuesto'));
-addLine($lines,'Comentarios',clean('comentarios'));
-
+$lines[]=''; $lines[]='DETALLES'; addLine($lines,'Planos',$plansAvailable ? 'Sí, PDF adjuntado' : 'No'); addLine($lines,'Presupuesto orientativo',clean('presupuesto')); addLine($lines,'Comentarios',clean('comentarios'));
 $text = implode("\n", $lines);
-$wa = 'https://wa.me/5493413661548?text='.rawurlencode($text);
-header('Location: '.$wa, true, 303);
+header('Location: https://wa.me/5493413661548?text='.rawurlencode($text), true, 303);
 exit;
