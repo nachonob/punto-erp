@@ -1,39 +1,71 @@
 <?php
 declare(strict_types=1);
 $a=$_GET['a']??'';
+
+function projectRouteAccess():array{
+ if(session_status()!==PHP_SESSION_ACTIVE)session_start();
+ $user=$_SESSION['user']??null;
+ $logged=!empty($user);
+ $isAdmin=$logged&&(($user['role']??'')==='admin');
+ $permissions=$user['permissions']??[];
+ $view=$isAdmin||!empty($permissions['projects']['view'])||!empty($permissions['projects']['manage']);
+ $manage=$isAdmin||!empty($permissions['projects']['manage']);
+ if(session_status()===PHP_SESSION_ACTIVE)session_write_close();
+ return [$logged,$view,$manage];
+}
+
 if(in_array($a,['clients','new_client','edit_client','save_client','update_client','delete_client'],true)){
  require __DIR__.'/app/Modules/Clients/module_v2.php';
  exit;
 }
 if($a==='quotes'){
+ [$logged,$view,$manage]=projectRouteAccess();
+ if($logged&&!$view){http_response_code(403);exit('Tu perfil no permite acceder a presupuestos.');}
+ if($logged&&$view&&!$manage){header('Location:?a=projects');exit;}
  require __DIR__.'/app/Modules/Quotes/list_v2.php';
  exit;
 }
 if($a==='quote_pdf_assets'){
+ [$logged,$view,$manage]=projectRouteAccess();
+ if($logged&&!$manage){http_response_code(403);exit('Tu perfil no permite administrar archivos de presupuestos.');}
  require __DIR__.'/app/Modules/Quotes/pdf_assets_admin.php';
  exit;
 }
 if($a==='quote_pdf_asset'){
+ [$logged,$view,$manage]=projectRouteAccess();
+ if($logged&&!$manage){http_response_code(403);exit('Tu perfil no permite acceder a archivos comerciales del presupuesto.');}
  require __DIR__.'/app/Modules/Quotes/pdf_asset.php';
  exit;
 }
 if(in_array($a,['quote_view','quote_print'],true)){
+ [$logged,$view,$manage]=projectRouteAccess();
+ if($logged&&!$view){http_response_code(403);exit('Tu perfil no permite acceder a presupuestos.');}
+ if($logged&&$view&&!$manage){require __DIR__.'/app/Modules/Quotes/technical_view.php';exit;}
  require __DIR__.'/app/Modules/Quotes/print_v4.php';
  exit;
 }
 if(in_array($a,['new_quote','save_quote','edit_quote','update_quote'],true)){
+ [$logged,$view,$manage]=projectRouteAccess();
+ if($logged&&!$manage){http_response_code(403);exit('Tu perfil es de solo lectura y no permite crear ni editar presupuestos.');}
  require __DIR__.'/app/Modules/Quotes/module_v10.php';
  exit;
 }
 if($a==='projects'){
+ [$logged,$view,$manage]=projectRouteAccess();
+ if($logged&&!$view){http_response_code(403);exit('Tu perfil no permite acceder a proyectos.');}
  require __DIR__.'/app/Modules/Projects/list_v2.php';
  exit;
 }
 if($a==='project'){
+ [$logged,$view,$manage]=projectRouteAccess();
+ if($logged&&!$view){http_response_code(403);exit('Tu perfil no permite acceder a proyectos.');}
+ if($logged&&$view&&!$manage){require __DIR__.'/app/Modules/Projects/detail_technical.php';exit;}
  require __DIR__.'/app/Modules/Projects/detail_v3.php';
  exit;
 }
 if(in_array($a,['new_project','save_project'],true)){
+ [$logged,$view,$manage]=projectRouteAccess();
+ if($logged&&!$manage){http_response_code(403);exit('Tu perfil es de solo lectura y no permite crear proyectos.');}
  require __DIR__.'/app/Modules/Projects/new_v2.php';
  exit;
 }
