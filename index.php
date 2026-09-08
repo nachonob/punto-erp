@@ -4,101 +4,23 @@ $a=$_GET['a']??'';
 
 function projectRouteAccess():array{
  if(session_status()!==PHP_SESSION_ACTIVE)session_start();
- $user=$_SESSION['user']??null;
- $logged=!empty($user);
- $isAdmin=$logged&&(($user['role']??'')==='admin');
- $permissions=$user['permissions']??[];
- $view=$isAdmin||!empty($permissions['projects']['view'])||!empty($permissions['projects']['manage']);
- $manage=$isAdmin||!empty($permissions['projects']['manage']);
- if(session_status()===PHP_SESSION_ACTIVE)session_write_close();
- return [$logged,$view,$manage];
+ $user=$_SESSION['user']??null;$logged=!empty($user);$isAdmin=$logged&&(($user['role']??'')==='admin');$permissions=$user['permissions']??[];$view=$isAdmin||!empty($permissions['projects']['view'])||!empty($permissions['projects']['manage']);$manage=$isAdmin||!empty($permissions['projects']['manage']);if(session_status()===PHP_SESSION_ACTIVE)session_write_close();return [$logged,$view,$manage];
 }
-
-if(in_array($a,['clients','new_client','edit_client','save_client','update_client','delete_client'],true)){
- require __DIR__.'/app/Modules/Clients/module_v2.php';
- exit;
-}
-if($a==='quotes'){
- [$logged,$view,$manage]=projectRouteAccess();
- if($logged&&!$view){http_response_code(403);exit('Tu perfil no permite acceder a presupuestos.');}
- if($logged&&$view&&!$manage){header('Location:?a=projects');exit;}
- require __DIR__.'/app/Modules/Quotes/list_v2.php';
- exit;
-}
-if($a==='quote_pdf_assets'){
- [$logged,$view,$manage]=projectRouteAccess();
- if($logged&&!$manage){http_response_code(403);exit('Tu perfil no permite administrar archivos de presupuestos.');}
- require __DIR__.'/app/Modules/Quotes/pdf_assets_admin.php';
- exit;
-}
-if($a==='quote_pdf_asset'){
- [$logged,$view,$manage]=projectRouteAccess();
- if($logged&&!$manage){http_response_code(403);exit('Tu perfil no permite acceder a archivos comerciales del presupuesto.');}
- require __DIR__.'/app/Modules/Quotes/pdf_asset.php';
- exit;
-}
-if(in_array($a,['quote_view','quote_print'],true)){
- [$logged,$view,$manage]=projectRouteAccess();
- if($logged&&!$view){http_response_code(403);exit('Tu perfil no permite acceder a presupuestos.');}
- if($logged&&$view&&!$manage){require __DIR__.'/app/Modules/Quotes/technical_view.php';exit;}
- require __DIR__.'/app/Modules/Quotes/print_v4.php';
- exit;
-}
-if(in_array($a,['new_quote','save_quote','edit_quote','update_quote'],true)){
- [$logged,$view,$manage]=projectRouteAccess();
- if($logged&&!$manage){http_response_code(403);exit('Tu perfil es de solo lectura y no permite crear ni editar presupuestos.');}
- require __DIR__.'/app/Modules/Quotes/module_v10.php';
- exit;
-}
-if($a==='projects'){
- [$logged,$view,$manage]=projectRouteAccess();
- if($logged&&!$view){http_response_code(403);exit('Tu perfil no permite acceder a proyectos.');}
- require __DIR__.'/app/Modules/Projects/list_v2.php';
- exit;
-}
-if($a==='project'){
- [$logged,$view,$manage]=projectRouteAccess();
- if($logged&&!$view){http_response_code(403);exit('Tu perfil no permite acceder a proyectos.');}
- if($logged&&$view&&!$manage){require __DIR__.'/app/Modules/Projects/detail_technical.php';exit;}
- require __DIR__.'/app/Modules/Projects/detail_v3.php';
- exit;
-}
-if(in_array($a,['new_project','save_project'],true)){
- [$logged,$view,$manage]=projectRouteAccess();
- if($logged&&!$manage){http_response_code(403);exit('Tu perfil es de solo lectura y no permite crear proyectos.');}
- require __DIR__.'/app/Modules/Projects/new_v2.php';
- exit;
-}
-if(in_array($a,['receipts','payment_new_general','save_payment_general','edit_payment','update_payment'],true)){
- require __DIR__.'/app/Modules/Receipts/module_v2.php';
- exit;
-}
-if($a==='import_product_images'){
- require __DIR__.'/app/Modules/Products/import_images.php';
- exit;
-}
-if(in_array($a,['products','new_product','edit_product','save_product','update_product','price_lists','save_price_list','update_price_list','product_categories','save_product_category','update_product_category','stock_movement','save_stock_movement'],true)){
- require __DIR__.'/app/Modules/Products/module_costs_v2.php';
- exit;
-}
-if(in_array($a,['inventory_movements','save_inventory_movement'],true)){
- require __DIR__.'/app/Modules/Inventory/movements.php';
- exit;
-}
-if(in_array($a,['inventory','warehouses','inventory_transfer','inventory_reorder','save_warehouse','update_min_stock','save_inventory_transfer'],true)){
- require __DIR__.'/app/Modules/Inventory/module_v2.php';
- exit;
-}
-$module=$_GET['module']??'accounts';
-$registry=require __DIR__.'/app/modules.php';
-if(!isset($registry[$module])){http_response_code(404);exit('Módulo inexistente.');}
-if(empty($registry[$module]['enabled'])){
- require __DIR__.'/app/Core/ComingSoon.php';
- exit;
-}
-require __DIR__.'/'.$registry[$module]['entry'];
-?><script>(function(){
- const nav=document.querySelector('.sidebar-nav');if(!nav)return;
- if(!nav.querySelector('a[href="?a=quotes"]')){const link=document.createElement('a');link.href='?a=quotes';link.innerHTML='<span class="nav-icon">▥</span>Presupuestos';const projectLink=nav.querySelector('a[href="?a=projects"]');if(projectLink&&projectLink.parentNode===nav){projectLink.insertAdjacentElement('afterend',link)}else{nav.appendChild(link)}}
- if(!nav.querySelector('a[href="?a=inventory"]')){const group=document.createElement('div');group.className='nav-group';group.innerHTML='<div class="nav-group-title"><span class="nav-icon">▣</span>Inventario</div><div class="nav-submenu"><a href="?a=inventory">Stock actual</a><a href="?a=inventory_movements">Movimientos</a><a href="?a=warehouses">Depósitos</a><a href="?a=inventory_transfer">Transferencias</a><a href="?a=inventory_reorder">Reposición</a></div>';const sales=Array.from(nav.querySelectorAll('.nav-group')).find(g=>g.textContent.includes('Ventas'));if(sales)sales.insertAdjacentElement('afterend',group);else nav.appendChild(group)}
-})();</script>
+if(in_array($a,['technical_projects','technical_project','save_technical_project'],true)){require __DIR__.'/app/Modules/Projects/technical.php';exit;}
+if($a==='technical_quote'){require __DIR__.'/app/Modules/Quotes/technical_print.php';exit;}
+if(in_array($a,['clients','new_client','edit_client','save_client','update_client','delete_client'],true)){require __DIR__.'/app/Modules/Clients/module_v2.php';exit;}
+if($a==='quotes'){[$logged,$view,$manage]=projectRouteAccess();if($logged&&!$view){http_response_code(403);exit('Tu perfil no permite acceder a presupuestos.');}if($logged&&$view&&!$manage){header('Location:?a=projects');exit;}require __DIR__.'/app/Modules/Quotes/list_v2.php';exit;}
+if($a==='quote_pdf_assets'){[$logged,$view,$manage]=projectRouteAccess();if($logged&&!$manage){http_response_code(403);exit('Tu perfil no permite administrar archivos de presupuestos.');}require __DIR__.'/app/Modules/Quotes/pdf_assets_admin.php';exit;}
+if($a==='quote_pdf_asset'){[$logged,$view,$manage]=projectRouteAccess();if($logged&&!$manage){http_response_code(403);exit('Tu perfil no permite acceder a archivos comerciales del presupuesto.');}require __DIR__.'/app/Modules/Quotes/pdf_asset.php';exit;}
+if(in_array($a,['quote_view','quote_print'],true)){[$logged,$view,$manage]=projectRouteAccess();if($logged&&!$view){http_response_code(403);exit('Tu perfil no permite acceder a presupuestos.');}if($logged&&$view&&!$manage){require __DIR__.'/app/Modules/Quotes/technical_view.php';exit;}require __DIR__.'/app/Modules/Quotes/print_v4.php';exit;}
+if(in_array($a,['new_quote','save_quote','edit_quote','update_quote'],true)){[$logged,$view,$manage]=projectRouteAccess();if($logged&&!$manage){http_response_code(403);exit('Tu perfil es de solo lectura y no permite crear ni editar presupuestos.');}require __DIR__.'/app/Modules/Quotes/module_v10.php';exit;}
+if($a==='projects'){[$logged,$view,$manage]=projectRouteAccess();if($logged&&!$view){http_response_code(403);exit('Tu perfil no permite acceder a proyectos.');}require __DIR__.'/app/Modules/Projects/list_v2.php';exit;}
+if($a==='project'){[$logged,$view,$manage]=projectRouteAccess();if($logged&&!$view){http_response_code(403);exit('Tu perfil no permite acceder a proyectos.');}if($logged&&$view&&!$manage){require __DIR__.'/app/Modules/Projects/detail_technical.php';exit;}require __DIR__.'/app/Modules/Projects/detail_v3.php';exit;}
+if(in_array($a,['new_project','save_project'],true)){[$logged,$view,$manage]=projectRouteAccess();if($logged&&!$manage){http_response_code(403);exit('Tu perfil es de solo lectura y no permite crear proyectos.');}require __DIR__.'/app/Modules/Projects/new_v2.php';exit;}
+if(in_array($a,['receipts','payment_new_general','save_payment_general','edit_payment','update_payment'],true)){require __DIR__.'/app/Modules/Receipts/module_v2.php';exit;}
+if($a==='import_product_images'){require __DIR__.'/app/Modules/Products/import_images.php';exit;}
+if(in_array($a,['products','new_product','edit_product','save_product','update_product','price_lists','save_price_list','update_price_list','product_categories','save_product_category','update_product_category','stock_movement','save_stock_movement'],true)){require __DIR__.'/app/Modules/Products/module_costs_v2.php';exit;}
+if(in_array($a,['inventory_movements','save_inventory_movement'],true)){require __DIR__.'/app/Modules/Inventory/movements.php';exit;}
+if(in_array($a,['inventory','warehouses','inventory_transfer','inventory_reorder','save_warehouse','update_min_stock','save_inventory_transfer'],true)){require __DIR__.'/app/Modules/Inventory/module_v2.php';exit;}
+$module=$_GET['module']??'accounts';$registry=require __DIR__.'/app/modules.php';if(!isset($registry[$module])){http_response_code(404);exit('Módulo inexistente.');}if(empty($registry[$module]['enabled'])){require __DIR__.'/app/Core/ComingSoon.php';exit;}require __DIR__.'/'.$registry[$module]['entry'];
+?><script>(function(){const nav=document.querySelector('.sidebar-nav');if(!nav)return;if(!nav.querySelector('a[href="?a=quotes"]')){const link=document.createElement('a');link.href='?a=quotes';link.innerHTML='<span class="nav-icon">▥</span>Presupuestos';const projectLink=nav.querySelector('a[href="?a=projects"]');if(projectLink&&projectLink.parentNode===nav){projectLink.insertAdjacentElement('afterend',link)}else{nav.appendChild(link)}}if(!nav.querySelector('a[href="?a=inventory"]')){const group=document.createElement('div');group.className='nav-group';group.innerHTML='<div class="nav-group-title"><span class="nav-icon">▣</span>Inventario</div><div class="nav-submenu"><a href="?a=inventory">Stock actual</a><a href="?a=inventory_movements">Movimientos</a><a href="?a=warehouses">Depósitos</a><a href="?a=inventory_transfer">Transferencias</a><a href="?a=inventory_reorder">Reposición</a></div>';const sales=Array.from(nav.querySelectorAll('.nav-group')).find(g=>g.textContent.includes('Ventas'));if(sales)sales.insertAdjacentElement('afterend',group);else nav.appendChild(group)}})();</script>
