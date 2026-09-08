@@ -22,7 +22,7 @@ if(in_array($a,['quote_view','quote_print'],true)){
  exit;
 }
 if(in_array($a,['new_quote','save_quote','edit_quote','update_quote'],true)){
- require __DIR__.'/app/Modules/Quotes/module_v9.php';
+ require __DIR__.'/app/Modules/Quotes/module_v10.php';
  exit;
 }
 if($a==='project'){
