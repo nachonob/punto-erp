@@ -3,6 +3,7 @@ declare(strict_types=1);
 $a=$_GET['a']??'';
 function projectRouteAccess():array{if(session_status()!==PHP_SESSION_ACTIVE)session_start();$user=$_SESSION['user']??null;$logged=!empty($user);$isAdmin=$logged&&(($user['role']??'')==='admin');$permissions=$user['permissions']??[];$view=$isAdmin||!empty($permissions['projects']['view'])||!empty($permissions['projects']['manage']);$manage=$isAdmin||!empty($permissions['projects']['manage']);if(session_status()===PHP_SESSION_ACTIVE)session_write_close();return [$logged,$view,$manage];}
 if(in_array($a,['edit_profile','update_profile'],true)){require __DIR__.'/app/Modules/Projects/profile_technical_permissions.php';exit;}
+if(in_array($a,['technical_schedule','save_schedule_event'],true)){require __DIR__.'/app/Modules/Projects/schedule.php';exit;}
 if(in_array($a,['technical_projects','technical_project','save_technical_project'],true)){require __DIR__.'/app/Modules/Projects/technical.php';exit;}
 if($a==='technical_quote'){require __DIR__.'/app/Modules/Quotes/technical_print.php';exit;}
 if(in_array($a,['clients','new_client','edit_client','save_client','update_client','delete_client'],true)){require __DIR__.'/app/Modules/Clients/module_v2.php';exit;}
