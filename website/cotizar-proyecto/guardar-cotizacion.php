@@ -10,7 +10,6 @@ function fail(string $message, int $status = 400): never {
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') fail('Método no permitido.', 405);
 
-$publicRoot = dirname(__DIR__);
 $erpRoots = [dirname(__DIR__,2).'/erp', dirname(__DIR__,2).'/erp-dev'];
 $cfg = null;
 $erpRoot = null;
@@ -47,6 +46,11 @@ function arr(string $key): array {
     if (!is_array($v)) $v = [$v];
     return array_values(array_filter(array_map(static fn($x)=>trim((string)$x), $v), static fn($x)=>$x!==''));
 }
+function addLine(array &$lines, string $label, mixed $value): void {
+    if ($value === null || $value === '' || $value === []) return;
+    if (is_array($value)) $value = implode(', ', $value);
+    $lines[] = $label.': '.$value;
+}
 
 $name = clean('nombre');
 $whatsapp = preg_replace('/\s+/', '', clean('telefono'));
@@ -79,36 +83,12 @@ if ($plansAvailable) {
 try {
     $db->beginTransaction();
 
-    // Reutiliza cliente existente por WhatsApp o email para evitar duplicados.
-    $client = null;
-    if ($whatsapp !== '') {
-        $s = $db->prepare('SELECT * FROM clients WHERE whatsapp=? ORDER BY id DESC LIMIT 1');
-        $s->execute([$whatsapp]);
-        $client = $s->fetch() ?: null;
-    }
-    if (!$client && $email !== '') {
-        $s = $db->prepare('SELECT * FROM clients WHERE email=? ORDER BY id DESC LIMIT 1');
-        $s->execute([$email]);
-        $client = $s->fetch() ?: null;
-    }
-
-    if ($client) {
-        $clientId = (int)$client['id'];
-        $db->prepare('UPDATE clients SET business_name=?, contact_name=?, email=?, whatsapp=?, city=?, country=COALESCE(NULLIF(country,\'\'),\'Argentina\'), active=1 WHERE id=?')
-           ->execute([$name,$name,$email,$whatsapp,$location,$clientId]);
-        $clientNumber = (int)($client['client_number'] ?? 0);
-        if ($clientNumber <= 0) {
-            $next = (int)$db->query('SELECT COALESCE(MAX(client_number),0)+1 FROM clients FOR UPDATE')->fetchColumn();
-            $db->prepare('UPDATE clients SET client_number=? WHERE id=?')->execute([$next,$clientId]);
-            $clientNumber = $next;
-        }
-    } else {
-        $next = (int)$db->query('SELECT COALESCE(MAX(client_number),0)+1 FROM clients FOR UPDATE')->fetchColumn();
-        $db->prepare('INSERT INTO clients(client_number,business_name,contact_name,cuit,iva_condition,email,whatsapp,address,city,province,country,notes,active) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,1)')
-           ->execute([$next,$name,$name,'','consumidor_final',$email,$whatsapp,'',$location,'','Argentina','Alta automática desde cotizar-proyecto']);
-        $clientId = (int)$db->lastInsertId();
-        $clientNumber = $next;
-    }
+    // Cada envío del formulario crea un cliente nuevo, tal como se definió para los leads web.
+    $next = (int)$db->query('SELECT COALESCE(MAX(client_number),0)+1 FROM clients FOR UPDATE')->fetchColumn();
+    $db->prepare('INSERT INTO clients(client_number,business_name,contact_name,cuit,iva_condition,email,whatsapp,address,city,province,country,notes,active) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,1)')
+       ->execute([$next,$name,$name,'','consumidor_final',$email,$whatsapp,'',$location,'','Argentina','Alta automática desde cotizar-proyecto']);
+    $clientId = (int)$db->lastInsertId();
+    $clientNumber = $next;
 
     $requestSeq = (int)$db->query('SELECT COALESCE(MAX(id),0)+1 FROM web_quote_requests FOR UPDATE')->fetchColumn();
     $requestNumber = 'WEB-'.date('Y').'-'.str_pad((string)$requestSeq,5,'0',STR_PAD_LEFT);
@@ -139,21 +119,45 @@ $lines = [
     '',
     'Solicitud: '.$requestNumber,
     'Cliente N°: '.str_pad((string)$clientNumber,5,'0',STR_PAD_LEFT),
-    'Nombre: '.$name,
-    'WhatsApp: '.$whatsapp,
-    $email!=='' ? 'Email: '.$email : null,
-    'Ubicación: '.$location,
-    clean('estado')!=='' ? 'Etapa: '.clean('estado') : null,
-    clean('tipo')!=='' ? 'Propiedad: '.clean('tipo') : null,
-    intOrNull('superficie') ? 'Superficie: '.intOrNull('superficie').' m²' : null,
-    $systems ? 'Sistemas: '.implode(', ',$systems) : null,
-    in_array('Cerradura inteligente',$systems,true) && intOrNull('cantidad_cerraduras') ? 'Cerraduras inteligentes: '.intOrNull('cantidad_cerraduras') : null,
-    $plansAvailable ? 'Planos: adjuntados en PDF' : 'Planos: no adjuntados',
-    clean('presupuesto')!=='' ? 'Presupuesto orientativo: '.clean('presupuesto') : null,
-    clean('comentarios')!=='' ? 'Comentarios: '.clean('comentarios') : null,
+    '',
+    'DATOS DE CONTACTO'
 ];
-$lines = array_values(array_filter($lines, static fn($v)=>$v!==null));
+addLine($lines,'Nombre',$name);
+addLine($lines,'WhatsApp',$whatsapp);
+addLine($lines,'Email',$email);
+addLine($lines,'Ubicación',$location);
+$lines[]='';
+$lines[]='PROYECTO';
+addLine($lines,'Etapa',clean('estado'));
+addLine($lines,'Tipo de propiedad',clean('tipo'));
+if (intOrNull('superficie') !== null) addLine($lines,'Superficie',intOrNull('superficie').' m²');
+addLine($lines,'Cantidad de plantas',intOrNull('plantas'));
+addLine($lines,'Fecha estimada',clean('fecha'));
+$lines[]='';
+$lines[]='AMBIENTES';
+addLine($lines,'Dormitorios',intOrNull('dormitorios'));
+addLine($lines,'Baños',intOrNull('banos'));
+addLine($lines,'Otros ambientes',$rooms);
+$lines[]='';
+$lines[]='SISTEMAS';
+addLine($lines,'Sistemas seleccionados',$systems);
+addLine($lines,'Tipo de climatización',$climateTypes);
+if (in_array('Iluminación inteligente',$systems,true)) addLine($lines,'Cantidad de teclas',intOrNull('cantidad_teclas'));
+if (in_array('Climatización',$systems,true)) {
+    if (in_array('Split',$climateTypes,true)) addLine($lines,'Cantidad de splits',intOrNull('cantidad_splits'));
+    if (in_array('Losa radiante',$climateTypes,true) || in_array('Radiadores',$climateTypes,true)) addLine($lines,'Cantidad de termostatos',intOrNull('cantidad_termostatos'));
+}
+if (in_array('Cortinas y persianas',$systems,true)) addLine($lines,'Cantidad de cortinas o persianas',intOrNull('cantidad_cortinas'));
+if (in_array('Cámaras',$systems,true)) addLine($lines,'Cantidad de cámaras',intOrNull('cantidad_camaras'));
+if (in_array('Cerradura inteligente',$systems,true)) addLine($lines,'Cantidad de cerraduras inteligentes',intOrNull('cantidad_cerraduras'));
+if (in_array('Audio multizona',$systems,true)) addLine($lines,'Cantidad de zonas de audio',intOrNull('cantidad_zonas_audio'));
+$lines[]='';
+$lines[]='DETALLES';
+addLine($lines,'Planos',$plansAvailable ? 'Sí, PDF adjuntado' : 'No');
+addLine($lines,'Presupuesto orientativo',clean('presupuesto'));
+addLine($lines,'Comentarios',clean('comentarios'));
+
 $text = implode("\n", $lines);
-$wa = 'https://wa.me/5493417448197?text='.rawurlencode($text);
+$wa = 'https://wa.me/5493413661548?text='.rawurlencode($text);
 header('Location: '.$wa, true, 303);
 exit;
