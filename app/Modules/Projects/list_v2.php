@@ -1,0 +1,40 @@
+<?php
+declare(strict_types=1);
+session_start();
+$root=dirname(__DIR__,3);
+$cfg=require $root.'/config.php';
+date_default_timezone_set($cfg['timezone']??'America/Argentina/Buenos_Aires');
+$db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+if(empty($_SESSION['user'])){header('Location:index.php');exit;}
+$u=$_SESSION['user'];$isAdmin=($u['role']??'')==='admin';$perms=$u['permissions']??[];if(!$isAdmin&&!empty($perms)&&empty($perms['projects']['view'])){http_response_code(403);exit('No autorizado.');}
+$canManage=$isAdmin||empty($perms)||!empty($perms['projects']['manage']);
+require_once $root.'/app/Core/UnifiedSidebar.php';
+function e($v):string{return htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');}
+
+$q=trim((string)($_GET['q']??''));
+$status=trim((string)($_GET['status']??''));
+$clientId=(int)($_GET['client_id']??0);
+$partnerId=(int)($_GET['partner_id']??0);
+$dateFrom=trim((string)($_GET['date_from']??''));
+$dateTo=trim((string)($_GET['date_to']??''));
+$sort=(string)($_GET['sort']??'created_at');
+$dir=strtolower((string)($_GET['dir']??'desc'))==='asc'?'asc':'desc';
+$sortMap=['project_number'=>'p.project_number','name'=>'p.name','client'=>'c.business_name','partner'=>'pp.business_name','status'=>'p.status','created_at'=>'p.created_at'];
+if(!isset($sortMap[$sort]))$sort='created_at';
+$where=['1=1'];$params=[];
+if($q!==''){$where[]='(p.project_number LIKE ? OR p.name LIKE ? OR c.business_name LIKE ? OR pp.business_name LIKE ?)';for($i=0;$i<4;$i++)$params[]='%'.$q.'%';}
+if($status!==''){$where[]='p.status=?';$params[]=$status;}
+if($clientId>0){$where[]='p.client_id=?';$params[]=$clientId;}
+if($partnerId>0){$where[]='p.partner_id=?';$params[]=$partnerId;}
+if($dateFrom!==''){$where[]='DATE(p.created_at)>=?';$params[]=$dateFrom;}
+if($dateTo!==''){$where[]='DATE(p.created_at)<=?';$params[]=$dateTo;}
+$sql='SELECT p.*,c.business_name,pp.business_name partner_name,pp.partner_type FROM projects p JOIN clients c ON c.id=p.client_id LEFT JOIN project_partners pp ON pp.id=p.partner_id WHERE '.implode(' AND ',$where).' ORDER BY '.$sortMap[$sort].' '.strtoupper($dir).', p.id '.strtoupper($dir);
+$s=$db->prepare($sql);$s->execute($params);$rows=$s->fetchAll();
+$clients=$db->query('SELECT id,business_name FROM clients WHERE active=1 ORDER BY business_name')->fetchAll();
+$partners=$db->query('SELECT id,business_name FROM project_partners WHERE active=1 ORDER BY business_name')->fetchAll();
+$statuses=['consulta'=>'Consulta','presupuestado'=>'Presupuestado','aprobado'=>'Aprobado','en_obra'=>'En obra','finalizado'=>'Finalizado','cancelado'=>'Cancelado'];
+function sortUrl(string $field,string $current,string $dir):string{$next=($current===$field&&$dir==='asc')?'desc':'asc';$p=$_GET;$p['a']='projects';$p['sort']=$field;$p['dir']=$next;return '?'.http_build_query($p);}
+function sortLabel(string $label,string $field,string $current,string $dir):string{$arrow=$current===$field?($dir==='asc'?' ↑':' ↓'):'';return $label.$arrow;}
+?><!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Proyectos · Punto ERP</title><style><?=erpSidebarCss()?>body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}.main{margin-left:var(--sidebar);padding:32px 4%}.actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:18px;box-shadow:0 4px 16px #00000008}.filters{display:grid;grid-template-columns:2fr 1fr 1.3fr 1.3fr 1fr 1fr;gap:12px;align-items:end}.filters label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}.filters input,.filters select{width:100%;padding:10px 11px;border:1px solid #cbd1d7;border-radius:8px;background:#fff;font:inherit}.btn{display:inline-block;border:0;border-radius:8px;padding:10px 15px;background:var(--o);color:#fff;text-decoration:none;font-weight:700;cursor:pointer}.btn.light{background:#edf0f3;color:var(--ink)}.muted{color:var(--muted)}.scroll{overflow:auto}table{width:100%;border-collapse:collapse;min-width:1050px}th,td{text-align:left;padding:13px 9px;border-bottom:1px solid var(--line);vertical-align:middle}th{font-size:12px;text-transform:uppercase;color:var(--muted);white-space:nowrap}th a{color:inherit;text-decoration:none}th a:hover{color:var(--o)}.pill{display:inline-block;padding:4px 10px;border-radius:20px;background:#edf0f3;font-size:12px}.count{margin:0;color:var(--muted)}@media(max-width:1100px){.filters{grid-template-columns:repeat(2,1fr)}}@media(max-width:900px){.main{margin-left:0;padding:22px}.filters{grid-template-columns:1fr}}</style></head><body><?=erpSidebar('projects')?><main class="main"><div class="actions" style="margin-bottom:18px"><div style="flex:1"><h1 style="margin:0 0 6px">Proyectos</h1><p class="count"><?=count($rows)?> proyecto<?=count($rows)===1?'':'s'?> encontrado<?=count($rows)===1?'':'s'?></p></div><?php if($canManage):?><a class="btn" href="?a=new_project">+ Proyecto</a><?php endif;?></div>
+<div class="card"><form method="get"><input type="hidden" name="a" value="projects"><input type="hidden" name="sort" value="<?=e($sort)?>"><input type="hidden" name="dir" value="<?=e($dir)?>"><div class="filters"><div><label>Buscar</label><input name="q" value="<?=e($q)?>" placeholder="Número, nombre, cliente o arquitecto"></div><div><label>Estado</label><select name="status"><option value="">Todos</option><?php foreach($statuses as $v=>$l):?><option value="<?=e($v)?>" <?=$status===$v?'selected':''?>><?=e($l)?></option><?php endforeach;?></select></div><div><label>Cliente</label><select name="client_id"><option value="0">Todos</option><?php foreach($clients as $c):?><option value="<?=$c['id']?>" <?=$clientId===(int)$c['id']?'selected':''?>><?=e($c['business_name'])?></option><?php endforeach;?></select></div><div><label>Arquitecto / constructora</label><select name="partner_id"><option value="0">Todos</option><?php foreach($partners as $p):?><option value="<?=$p['id']?>" <?=$partnerId===(int)$p['id']?'selected':''?>><?=e($p['business_name'])?></option><?php endforeach;?></select></div><div><label>Creado desde</label><input type="date" name="date_from" value="<?=e($dateFrom)?>"></div><div><label>Creado hasta</label><input type="date" name="date_to" value="<?=e($dateTo)?>"></div></div><div class="actions" style="margin-top:14px"><button class="btn light">Aplicar filtros</button><a class="btn light" href="?a=projects">Limpiar</a></div></form></div>
+<div class="card scroll"><table><thead><tr><th><a href="<?=e(sortUrl('project_number',$sort,$dir))?>"><?=e(sortLabel('Número','project_number',$sort,$dir))?></a></th><th><a href="<?=e(sortUrl('name',$sort,$dir))?>"><?=e(sortLabel('Nombre','name',$sort,$dir))?></a></th><th><a href="<?=e(sortUrl('client',$sort,$dir))?>"><?=e(sortLabel('Cliente','client',$sort,$dir))?></a></th><th><a href="<?=e(sortUrl('partner',$sort,$dir))?>"><?=e(sortLabel('Arquitecto / constructora','partner',$sort,$dir))?></a></th><th><a href="<?=e(sortUrl('created_at',$sort,$dir))?>"><?=e(sortLabel('Fecha de creación','created_at',$sort,$dir))?></a></th><th><a href="<?=e(sortUrl('status',$sort,$dir))?>"><?=e(sortLabel('Estado','status',$sort,$dir))?></a></th></tr></thead><tbody><?php foreach($rows as $r):?><tr><td><a href="?a=project&id=<?=$r['id']?>"><b><?=e($r['project_number'])?></b></a></td><td><?=e($r['name'])?></td><td><?=e($r['business_name'])?></td><td><?=e($r['partner_name']?:'—')?></td><td><?=e(date('d/m/Y',strtotime((string)$r['created_at'])))?><br><span class="muted"><?=e(date('H:i',strtotime((string)$r['created_at'])))?></span></td><td><span class="pill"><?=e($statuses[$r['status']]??$r['status'])?></span></td></tr><?php endforeach;?></tbody></table><?php if(!$rows):?><p class="muted">No hay proyectos que coincidan con los filtros seleccionados.</p><?php endif;?></div></main></body></html>
