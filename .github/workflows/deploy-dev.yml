@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - desarrollo/arquitectos-constructoras
+    paths-ignore:
+      - 'website/**'
+      - '.github/workflows/deploy-website.yml'
 
 jobs:
   deploy:
