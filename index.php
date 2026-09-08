@@ -25,6 +25,10 @@ if(in_array($a,['new_quote','save_quote','edit_quote','update_quote'],true)){
  require __DIR__.'/app/Modules/Quotes/module_v10.php';
  exit;
 }
+if($a==='projects'){
+ require __DIR__.'/app/Modules/Projects/list_v2.php';
+ exit;
+}
 if($a==='project'){
  require __DIR__.'/app/Modules/Projects/detail_v3.php';
  exit;
