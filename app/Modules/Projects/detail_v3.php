@@ -13,6 +13,12 @@ $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=u
  PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC
 ]);
 $projectId=(int)($_GET['id']??0);
+$technicalAccess=false;
+if(($_SESSION['user']['role']??'')==='admin')$technicalAccess=true;
+else{
+ $permissions=$_SESSION['user']['permissions']??[];
+ $technicalAccess=!empty($permissions['technical_projects']['view'])||!empty($permissions['technical_projects']['manage']);
+}
 if($projectId>0){
  try{
   $db->beginTransaction();
@@ -36,4 +42,11 @@ if($projectId>0){
  }catch(Throwable $e){if($db->inTransaction())$db->rollBack();}
 }
 session_write_close();
+ob_start();
 require __DIR__.'/detail_v2.php';
+$html=ob_get_clean();
+if($technicalAccess&&$projectId>0){
+ $script='<script>(function(){document.addEventListener("DOMContentLoaded",function(){var main=document.querySelector("main.main");if(!main)return;var actions=main.querySelector(".actions");if(!actions)return;if(actions.querySelector("a[data-technical-project]"))return;var a=document.createElement("a");a.href="?a=technical_project&id='.$projectId.'";a.className="btn light";a.setAttribute("data-technical-project","1");a.textContent="Proyecto técnico";var status=actions.querySelector(".pill");if(status)actions.insertBefore(a,status);else actions.appendChild(a);});})();</script>';
+ $html=str_replace('</body>',$script.'</body>',$html);
+}
+echo $html;
