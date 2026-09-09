@@ -1,13 +1,13 @@
 -- Punto ERP DEV · Planos PDF asociados a proyectos
 CREATE TABLE IF NOT EXISTS project_plan_files (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  project_id INT NOT NULL,
+  project_id INT UNSIGNED NOT NULL,
   file_path VARCHAR(500) NOT NULL,
   original_name VARCHAR(255) NOT NULL,
   mime_type VARCHAR(100) NOT NULL DEFAULT 'application/pdf',
   file_size BIGINT UNSIGNED NULL,
   source ENUM('manual','web') NOT NULL DEFAULT 'manual',
-  uploaded_by INT NULL,
+  uploaded_by INT UNSIGNED NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY idx_project_plan_files_project (project_id),
