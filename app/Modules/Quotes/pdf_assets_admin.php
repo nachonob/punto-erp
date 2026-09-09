@@ -8,7 +8,7 @@ if(($_SESSION['user']['role']??'')!=='admin'){http_response_code(403);exit('Solo
 $_SESSION['csrf']??=bin2hex(random_bytes(24));
 function e($v):string{return htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');}
 $base=$root.'/storage/uploads/pdf_assets';
-$families=['lifesmart'=>'LifeSmart','control4'=>'Control4','shelly'=>'Shelly'];
+$families=['lifesmart'=>'LifeSmart','control4'=>'Control4','shelly'=>'Shelly','electricidad'=>'Electricidad'];
 $types=['prologo'=>'Prólogo','pago'=>'Forma de pago'];
 $msg='';
 if($_SERVER['REQUEST_METHOD']==='POST'){
