@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 $a=$_GET['a']??'new_quote';$root=dirname(__DIR__,3);$qid=(int)($_POST['quote_id']??$_GET['id']??0);
-$conceptTotal=0.0;$conceptLabel='Materiales';
+$conceptTotal=0.0;$conceptLabel='Materiales';$savedStatus='borrador';
 if($a==='edit_quote'&&$qid>0){
  try{
   $cfg=require $root.'/config.php';
@@ -9,6 +9,7 @@ if($a==='edit_quote'&&$qid>0){
   $s=$db->prepare("SELECT description,unit_price FROM quote_items WHERE quote_id=? AND sku='__CONCEPT_TOTAL__' LIMIT 1");
   $s->execute([$qid]);
   if($r=$s->fetch()){$conceptLabel=trim((string)$r['description'])?:'Materiales';$conceptTotal=(float)$r['unit_price'];}
+  $s=$db->prepare('SELECT status FROM quotes WHERE id=?');$s->execute([$qid]);$savedStatus=(string)($s->fetchColumn()?:'borrador');
  }catch(Throwable $e){}
 }
 if(in_array($a,['save_quote','update_quote'],true)){
@@ -21,11 +22,12 @@ if(in_array($a,['save_quote','update_quote'],true)){
 ob_start();require __DIR__.'/module_v20.php';$html=ob_get_clean();
 $amountJ=json_encode($conceptTotal,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
 $labelJ=json_encode($conceptLabel,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+$statusJ=json_encode($savedStatus,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
 $inject=<<<'HTML'
 <style>.concept-price-panel{margin:16px 0;padding:14px;border:1px solid #ddd;border-radius:10px;background:#fafafa;display:grid;grid-template-columns:1fr 220px;gap:12px}.concept-price-panel label{font-weight:700;display:block;margin-bottom:5px}.concept-price-panel input{width:100%}@media(max-width:700px){.concept-price-panel{grid-template-columns:1fr}}</style>
 <script>
 (function(){
- const savedAmount=__AMOUNT__,savedLabel=__LABEL__;
+ const savedAmount=__AMOUNT__,savedLabel=__LABEL__,savedStatus=__STATUS__;
  function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
  function removeSynthetic(){document.querySelectorAll('tr').forEach(r=>{const sku=r.querySelector('.sku-input,input[name$="[sku]"]');if(sku&&sku.value==='__CONCEPT_TOTAL__')r.remove();});}
  function addPanel(){
@@ -35,11 +37,16 @@ $inject=<<<'HTML'
   p.innerHTML='<div><label>Concepto del precio total</label><input name="concept_total_label" value="'+esc(savedLabel||'Materiales')+'" placeholder="Ej.: Materiales"></div><div><label>Precio total</label><input name="concept_total_amount" type="number" min="0" step="0.01" value="'+(Number(savedAmount||0)||'')+'" placeholder="0.00"></div>';
   last.insertAdjacentElement('afterend',p);
  }
- function run(){removeSynthetic();addPanel();}
+ function ensureSentStatus(){
+  const s=document.querySelector('select[name="status"]');if(!s)return;
+  if(![...s.options].some(o=>o.value==='enviado')){const o=document.createElement('option');o.value='enviado';o.textContent='Enviado';const approved=[...s.options].find(o=>o.value==='aprobado_inicial');if(approved)s.insertBefore(o,approved);else s.appendChild(o);}
+  if(savedStatus)s.value=savedStatus;
+ }
+ function run(){removeSynthetic();addPanel();ensureSentStatus();}
  run();new MutationObserver(run).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
 HTML;
-$inject=str_replace(['__AMOUNT__','__LABEL__'],[$amountJ,$labelJ],$inject);
+$inject=str_replace(['__AMOUNT__','__LABEL__','__STATUS__'],[$amountJ,$labelJ,$statusJ],$inject);
 if(str_contains($html,'</body>'))$html=str_replace('</body>',$inject.'</body>',$html);else$html.=$inject;
 echo $html;
