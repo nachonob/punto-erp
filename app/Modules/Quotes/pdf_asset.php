@@ -2,7 +2,11 @@
 declare(strict_types=1);
 session_start();
 $root=dirname(__DIR__,3);
-if(empty($_SESSION['user'])){http_response_code(401);exit('No autorizado.');}
+// Los archivos comerciales pueden ser leídos por un usuario del ERP o por una sesión pública
+// que previamente fue validada mediante el token seguro del presupuesto.
+$hasUser=!empty($_SESSION['user']);
+$publicQuoteId=(int)($_SESSION['public_quote_access_id']??0);
+if(!$hasUser && $publicQuoteId<1){http_response_code(401);exit('No autorizado.');}
 $family=(string)($_GET['family']??'');
 $type=(string)($_GET['type']??'');
 $families=['lifesmart','control4','shelly','electricidad'];
