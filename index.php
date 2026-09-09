@@ -6,6 +6,7 @@ if(in_array($a,['users','edit_user','save_user','update_user','delete_user','sav
 if($a==='edit_profile'&&(int)($_GET['id']??0)===0){require __DIR__.'/app/Modules/Projects/profile_new.php';exit;}
 if(in_array($a,['edit_profile','update_profile'],true)){require __DIR__.'/app/Modules/Projects/profile_technical_permissions.php';exit;}
 if($a==='daily_report'){require __DIR__.'/app/Modules/Projects/daily_report.php';exit;}
+if($a==='transcribe_report'){require __DIR__.'/app/Modules/Projects/transcribe_report.php';exit;}
 if($a==='my_day'){require __DIR__.'/app/Modules/Projects/my_day.php';exit;}
 if(in_array($a,['technical_schedule','save_schedule_event'],true)){require __DIR__.'/app/Modules/Projects/schedule.php';exit;}
 if(in_array($a,['technical_projects','technical_project','save_technical_project'],true)){require __DIR__.'/app/Modules/Projects/technical.php';exit;}
