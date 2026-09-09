@@ -5,7 +5,7 @@ $root=dirname(__DIR__,3);
 if(empty($_SESSION['user'])){http_response_code(401);exit('No autorizado.');}
 $family=(string)($_GET['family']??'');
 $type=(string)($_GET['type']??'');
-$families=['lifesmart','control4','shelly'];
+$families=['lifesmart','control4','shelly','electricidad'];
 $types=['prologo','pago'];
 if(!in_array($family,$families,true)||!in_array($type,$types,true)){http_response_code(400);exit('Archivo inválido.');}
 $path=$root.'/storage/uploads/pdf_assets/'.$type.'/'.$family.'.pdf';
