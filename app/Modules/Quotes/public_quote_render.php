@@ -3,9 +3,7 @@ declare(strict_types=1);
 $id=(int)($_GET['id']??0);
 if($id<1 || (int)($_SESSION['public_quote_access_id']??0)!==$id){http_response_code(403);exit('Acceso no autorizado.');}
 $_SESSION['user']=['role'=>'public_quote'];
-ob_start();require __DIR__.'/print_v8.php';$html=ob_get_clean();
-// Mantenemos la sesión pública durante la navegación para que los endpoints de prólogo/pago
-// puedan validar que este visitante llegó mediante un token seguro.
+ob_start();require __DIR__.'/print_v11.php';$html=ob_get_clean();
 
 $html=preg_replace('/<a class="light" href="\?a=quotes">.*?<\/a>/s','',$html)??$html;
 $html=preg_replace('/<a class="dark" href="\?a=edit_quote&id=\d+">Editar<\/a>/','',$html)??$html;
@@ -16,9 +14,6 @@ $html=preg_replace('/<a id="waQuoteBtn"[^>]*>Enviar por WhatsApp<\/a>/','',$html
 $html=str_replace('<div class="screen-note">','<div class="screen-note" style="display:none">',$html);
 $html=str_replace('>Guardar PDF</button>','>Descargar PDF completo</button>',$html);
 $html=str_replace('>Generar PDF</button>','>Descargar PDF completo</button>',$html);
-
-// En la URL pública no existe ?a=quote_pdf_asset. Apuntamos los assets comerciales al endpoint
-// público y mostramos desde la vista previa el documento completo: prólogo + presupuesto + pago.
 $html=str_replace("prologueUrl='?a=quote_pdf_asset&type=prologo&family='+encodeURIComponent(quoteFamily),paymentUrl='?a=quote_pdf_asset&type=pago&family='+encodeURIComponent(quoteFamily)","prologueUrl='public-pdf-asset.php?type=prologo&family='+encodeURIComponent(quoteFamily),paymentUrl='public-pdf-asset.php?type=pago&family='+encodeURIComponent(quoteFamily)",$html);
 
 $preview=<<<'HTML'
