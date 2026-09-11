@@ -22,6 +22,22 @@ ERP modular. La versión actual incluye **Cuentas por cobrar** y un catálogo de
 
 Los módulos futuros ya están registrados, pero permanecen deshabilitados hasta ser desarrollados.
 
+## Recordatorios de seguimiento de presupuestos
+
+Definir un token largo y aleatorio en el `config.php` local (no versionado):
+
+```php
+'quote_followup_cron_token'=>'reemplazar-por-un-token-secreto',
+```
+
+Programar `cron/quote_followups.php` una vez por día. El token es obligatorio tanto por CLI como por HTTP. Ejemplo de tarea cron ejecutada a las 8:00:
+
+```cron
+0 8 * * * /usr/bin/php /ruta/a/punto-erp/cron/quote_followups.php --token=reemplazar-por-un-token-secreto
+```
+
+Como alternativa, el hosting puede invocar diariamente `https://dominio/punto-erp/cron/quote_followups.php?token=reemplazar-por-un-token-secreto`. El proceso avisa al vendedor responsable y a `iescobar@puntodomotica.com`; `reminder_sent_at` impide repetir el aviso hasta que el seguimiento sea reprogramado.
+
 ## Actualización de una instalación existente
 
 1. Hacer una copia de seguridad de la base de datos.
