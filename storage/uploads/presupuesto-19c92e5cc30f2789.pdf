@@ -1,0 +1,469 @@
+%PDF-1.4
+
+%
+1 0 obj
+<<
+/Type /Pages
+/Count 0
+/Kids [ ]
+>>
+endobj
+2 0 obj
+<<
+/Producer (Odoo)
+/Creator (Odoo)
+>>
+endobj
+3 0 obj
+<<
+/Type /EmbeddedFile
+/Params <<
+/CheckSum (8b3c8219804ab2de8d46417c2c575bb1)
+/ModDate (D\07220260828191717\05300\04700\047)
+/Size 10477
+>>
+/Subtype /text#2Fxml
+/Length 10477
+>>
+stream
+<?xml version='1.0' encoding='UTF-8'?>
+<Order xmlns="urn:oasis:names:specification:ubl:schema:xsd:Order-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2"><cbc:CustomizationID>urn:fdc:peppol.eu:poacc:trns:order:3</cbc:CustomizationID><cbc:ProfileID>urn:fdc:peppol.eu:poacc:bis:ordering:3</cbc:ProfileID><cbc:ID>S00222</cbc:ID><cbc:IssueDate>2026-06-05</cbc:IssueDate><cbc:OrderTypeCode>220</cbc:OrderTypeCode><cbc:Note>*FORMA DE PAGO:*
+Anticipo por ingeniería: 10% del total del Proyecto, será asignado como crédito al realizar el pago de la mano de obra.
+100% de materiales mínimo un mes antes de ingresar en obra. 50% de Mano de obra al ingresar, el resto al terminar el trabajo.  *NO INCLUYE CABLEADO, NI CABLES (EN EL CASO DE NECESITARLO).
+NO INCLUYE PERFORACIONES EN LAS PUERTAS PARA MONTAJE DE CERRADURAS
+COTIZACIÓN: Dólar billete venta banco nación. *
+/Plazo de entrega 30-40 días según importación y aprobación de seguridad eléctrica/</cbc:Note><cbc:DocumentCurrencyCode>USD</cbc:DocumentCurrencyCode><cac:ValidityPeriod><cbc:EndDate>2026-09-10</cbc:EndDate></cac:ValidityPeriod><cac:OriginatorDocumentReference><cbc:ID>DOMÓTICA LIFESMART V3</cbc:ID></cac:OriginatorDocumentReference><cac:BuyerCustomerParty><cac:Party><cac:PartyName><cbc:Name>26A50 - CRISTIAN ADROVER</cbc:Name></cac:PartyName><cac:PostalAddress><cbc:CityName>Funes</cbc:CityName></cac:PostalAddress><cac:Contact><cbc:Name>26A50 - CRISTIAN ADROVER</cbc:Name><cbc:Telephone>+54 9 11 3468-9000</cbc:Telephone><cbc:ElectronicMail>cristian-adrover@hotmail.com</cbc:ElectronicMail></cac:Contact></cac:Party></cac:BuyerCustomerParty><cac:SellerSupplierParty><cac:Party><cac:PartyName><cbc:Name>Punto Domotica SRL</cbc:Name></cac:PartyName><cac:PostalAddress><cbc:StreetName>Callao 1428</cbc:StreetName><cbc:CityName>Rosario</cbc:CityName><cbc:PostalZone>2004</cbc:PostalZone><cbc:CountrySubentity>Santa Fe</cbc:CountrySubentity><cac:Country><cbc:IdentificationCode>AR</cbc:IdentificationCode></cac:Country></cac:PostalAddress><cac:PartyTaxScheme><cbc:CompanyID>30717796485</cbc:CompanyID><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:PartyTaxScheme><cac:PartyLegalEntity><cbc:RegistrationName>Punto Domotica SRL</cbc:RegistrationName><cbc:CompanyID>30717796485</cbc:CompanyID></cac:PartyLegalEntity><cac:Contact><cbc:Name>Punto Domotica SRL</cbc:Name><cbc:ElectronicMail>mrossello@puntodomotica.com</cbc:ElectronicMail></cac:Contact></cac:Party></cac:SellerSupplierParty><cac:Delivery><cac:DeliveryParty><cac:PartyName><cbc:Name>26A50 - CRISTIAN ADROVER</cbc:Name></cac:PartyName></cac:DeliveryParty></cac:Delivery><cac:TaxTotal><cbc:TaxAmount currencyID="USD">1528.38</cbc:TaxAmount><cac:TaxSubtotal><cbc:TaxableAmount currencyID="USD">7278.00</cbc:TaxableAmount><cbc:TaxAmount currencyID="USD">1528.38</cbc:TaxAmount><cac:TaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>21.0</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:TaxCategory></cac:TaxSubtotal><cac:TaxSubtotal><cbc:TaxableAmount currencyID="USD">7200.00</cbc:TaxableAmount><cbc:TaxAmount currencyID="USD">0.00</cbc:TaxAmount><cac:TaxCategory><cbc:ID>E</cbc:ID><cbc:Percent>0.0</cbc:Percent><cbc:TaxExemptionReason>Exención fiscal</cbc:TaxExemptionReason><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:TaxCategory></cac:TaxSubtotal></cac:TaxTotal><cac:TaxTotal><cbc:TaxAmount currencyID="ARS">1918373.07</cbc:TaxAmount></cac:TaxTotal><cac:AnticipatedMonetaryTotal><cbc:LineExtensionAmount currencyID="USD">14478.00</cbc:LineExtensionAmount><cbc:TaxExclusiveAmount currencyID="USD">14478.00</cbc:TaxExclusiveAmount><cbc:TaxInclusiveAmount currencyID="USD">16006.38</cbc:TaxInclusiveAmount><cbc:PrepaidAmount currencyID="USD">0.00</cbc:PrepaidAmount><cbc:PayableAmount currencyID="USD">16006.38</cbc:PayableAmount></cac:AnticipatedMonetaryTotal><cac:OrderLine><cac:LineItem><cbc:ID>1</cbc:ID><cbc:Quantity unitCode="C62">4.0</cbc:Quantity><cbc:LineExtensionAmount currencyID="USD">440.00</cbc:LineExtensionAmount><cac:Price><cbc:PriceAmount currencyID="USD">110.0</cbc:PriceAmount></cac:Price><cac:Item><cbc:Name>[Smart Station Zegbee] LS082WH</cbc:Name><cac:SellersItemIdentification><cbc:ID>Smart Station Zegbee</cbc:ID></cac:SellersItemIdentification><cac:StandardItemIdentification><cbc:ID schemeID="0160">6932046201346</cbc:ID></cac:StandardItemIdentification><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>21.0</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item></cac:LineItem></cac:OrderLine><cac:OrderLine><cac:LineItem><cbc:ID>2</cbc:ID><cbc:Quantity unitCode="C62">2.0</cbc:Quantity><cbc:LineExtensionAmount currencyID="USD">1190.00</cbc:LineExtensionAmount><cac:Price><cbc:PriceAmount currencyID="USD">595.0</cbc:PriceAmount></cac:Price><cac:Item><cbc:Name>[Nature 7 PRO] LS227</cbc:Name><cac:SellersItemIdentification><cbc:ID>Nature 7 PRO</cbc:ID></cac:SellersItemIdentification><cac:StandardItemIdentification><cbc:ID schemeID="0160">6932046203883</cbc:ID></cac:StandardItemIdentification><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>21.0</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item></cac:LineItem></cac:OrderLine><cac:OrderLine><cac:LineItem><cbc:ID>3</cbc:ID><cbc:Quantity unitCode="C62">9.0</cbc:Quantity><cbc:LineExtensionAmount currencyID="USD">1206.00</cbc:LineExtensionAmount><cac:Price><cbc:PriceAmount currencyID="USD">134.0</cbc:PriceAmount></cac:Price><cac:Item><cbc:Name>[Nature Thermostat (White Frame - White Glass)] LS220-WT1</cbc:Name><cac:SellersItemIdentification><cbc:ID>Nature Thermostat (White Frame - White Glass)</cbc:ID></cac:SellersItemIdentification><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>21.0</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item></cac:LineItem></cac:OrderLine><cac:OrderLine><cac:LineItem><cbc:ID>4</cbc:ID><cbc:Quantity unitCode="C62">10.0</cbc:Quantity><cbc:LineExtensionAmount currencyID="USD">480.00</cbc:LineExtensionAmount><cac:Price><cbc:PriceAmount currencyID="USD">48.0</cbc:PriceAmount></cac:Price><cac:Item><cbc:Name>[Controlador IR Spot Mini] LS251WH</cbc:Name><cac:SellersItemIdentification><cbc:ID>Controlador IR Spot Mini</cbc:ID></cac:SellersItemIdentification><cac:StandardItemIdentification><cbc:ID schemeID="0160">6932046203012</cbc:ID></cac:StandardItemIdentification><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>21.0</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item></cac:LineItem></cac:OrderLine><cac:OrderLine><cac:LineItem><cbc:ID>5</cbc:ID><cbc:Quantity unitCode="C62">16.0</cbc:Quantity><cbc:LineExtensionAmount currencyID="USD">1360.00</cbc:LineExtensionAmount><cac:Price><cbc:PriceAmount currencyID="USD">85.0</cbc:PriceAmount></cac:Price><cac:Item><cbc:Name>[BLEND Curtain Controller PRO(Blanco)] LS240-WCN</cbc:Name><cac:SellersItemIdentification><cbc:ID>BLEND Curtain Controller PRO(Blanco)</cbc:ID></cac:SellersItemIdentification><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>21.0</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item></cac:LineItem></cac:OrderLine><cac:OrderLine><cac:LineItem><cbc:ID>6</cbc:ID><cbc:Quantity unitCode="C62">15.0</cbc:Quantity><cbc:LineExtensionAmount currencyID="USD">825.00</cbc:LineExtensionAmount><cac:Price><cbc:PriceAmount currencyID="USD">55.0</cbc:PriceAmount></cac:Price><cac:Item><cbc:Name>[Puck Dimmer 2 salidas] QS-D02-TRIAC-2C-LN-Zigbee</cbc:Name><cac:SellersItemIdentification><cbc:ID>Puck Dimmer 2 salidas</cbc:ID></cac:SellersItemIdentification><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>21.0</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item></cac:LineItem></cac:OrderLine><cac:OrderLine><cac:LineItem><cbc:ID>7</cbc:ID><cbc:Quantity unitCode="C62">20.0</cbc:Quantity><cbc:LineExtensionAmount currencyID="USD">1280.00</cbc:LineExtensionAmount><cac:Price><cbc:PriceAmount currencyID="USD">64.0</cbc:PriceAmount></cac:Price><cac:Item><cbc:Name>[CUBE Switch Module PRO (3 salidas )] LS193</cbc:Name><cac:SellersItemIdentification><cbc:ID>CUBE Switch Module PRO (3 salidas )</cbc:ID></cac:SellersItemIdentification><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>21.0</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item></cac:LineItem></cac:OrderLine><cac:OrderLine><cac:LineItem><cbc:ID>8</cbc:ID><cbc:Quantity unitCode="C62">2.0</cbc:Quantity><cbc:LineExtensionAmount currencyID="USD">164.00</cbc:LineExtensionAmount><cac:Price><cbc:PriceAmount currencyID="USD">82.0</cbc:PriceAmount></cac:Price><cac:Item><cbc:Name>[General Controller] LS143</cbc:Name><cac:SellersItemIdentification><cbc:ID>General Controller</cbc:ID></cac:SellersItemIdentification><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>21.0</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item></cac:LineItem></cac:OrderLine><cac:OrderLine><cac:LineItem><cbc:ID>9</cbc:ID><cbc:Quantity unitCode="C62">1.0</cbc:Quantity><cbc:LineExtensionAmount currencyID="USD">333.00</cbc:LineExtensionAmount><cac:Price><cbc:PriceAmount currencyID="USD">333.0</cbc:PriceAmount></cac:Price><cac:Item><cbc:Name>[YDM60 255] Cerradura YALE intemperie con gateway</cbc:Name><cac:SellersItemIdentification><cbc:ID>YDM60 255</cbc:ID></cac:SellersItemIdentification><cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>21.0</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item></cac:LineItem></cac:OrderLine><cac:OrderLine><cac:LineItem><cbc:ID>10</cbc:ID><cbc:Quantity unitCode="C62">1.0</cbc:Quantity><cbc:LineExtensionAmount currencyID="USD">7200.00</cbc:LineExtensionAmount><cac:Price><cbc:PriceAmount currencyID="USD">7200.0</cbc:PriceAmount></cac:Price><cac:Item><cbc:Name>Configuración, montaje y diseño de escenas</cbc:Name><cac:ClassifiedTaxCategory><cbc:ID>E</cbc:ID><cbc:Percent>0.0</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item></cac:LineItem></cac:OrderLine></Order>
+endstream
+endobj
+4 0 obj
+<<
+/AFRelationship /Data
+/Type /Filespec
+/F (S00222\137ubl\137bis3\056xml)
+/EF <<
+/F 3 0 R
+/UF 3 0 R
+>>
+/UF (S00222\137ubl\137bis3\056xml)
+>>
+endobj
+5 0 obj
+[ 4 0 R ]
+endobj
+6 0 obj
+<<
+/Type /Catalog
+/Pages 11 0 R
+/Outlines 9 0 R
+/PageMode /UseOutlines
+/Dests 7 0 R
+/Names <<
+/EmbeddedFiles <<
+/Names [ (S00222\137ubl\137bis3\056xml) 4 0 R ]
+>>
+>>
+/AF 5 0 R
+>>
+endobj
+7 0 obj
+<<
+/__WKANCHOR_2 8 0 R
+>>
+endobj
+8 0 obj
+[ 0 /XYZ 233.6 691.599999 0 ]
+endobj
+9 0 obj
+<<
+/Type /Outlines
+/First 10 0 R
+/Last 10 0 R
+>>
+endobj
+10 0 obj
+<<
+/Title (Presupuesto\040\043\040S00222)
+/Parent 9 0 R
+/Dest /__WKANCHOR_2
+/Count 0
+>>
+endobj
+11 0 obj
+<<
+/Type /Pages
+/Kids [ 26 0 R 12 0 R ]
+/Count 2
+/ProcSet [ /PDF /Text /ImageB /ImageC ]
+>>
+endobj
+12 0 obj
+<<
+/Type /Page
+/Parent 11 0 R
+/Contents 25 0 R
+/Resources 14 0 R
+/Annots 13 0 R
+/MediaBox [ 0 0 595 842 ]
+>>
+endobj
+13 0 obj
+[ ]
+endobj
+14 0 obj
+<<
+/ColorSpace <<
+/PCSp 24 0 R
+/CSp /DeviceRGB
+/CSpg /DeviceGray
+>>
+/ExtGState <<
+/GSa 23 0 R
+/GState7 22 0 R
+/GState9 21 0 R
+>>
+/Pattern <<
+>>
+/Font <<
+/F6 16 0 R
+>>
+/XObject <<
+/Im10 15 0 R
+>>
+>>
+endobj
+15 0 obj
+<<
+/Type /XObject
+/Subtype /Image
+/Width 330
+/Height 255
+/BitsPerComponent 8
+/ColorSpace /DeviceRGB
+/Filter /DCTDecode
+/Length 15074
+>>
+stream
+ JFIF  K K   C 		
+
+
+
+	 C  J"            	
+    } !1AQa"q2#BR$3br	
+%&'()*456789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz        	
+   w !1AQaq"2B	#3Rbr
+$4%&'()*56789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz   ? ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ( ~Ҿ_Kx:Njqທ3Yڙ<npqZE}mȒ*GCpz{祋VrJjRIO[NkSc5xR[]7^Ti2\<14}H~vL xQ! TO=ܟ]#
+}j&!%MEk]n!9T2jJnQ5{ N(~P?hF/wZm̨5lU=v$+y/<57z}ugAj)x,'+zן¼oK>Rz".Tú5<^"*M&$KTvTQE}QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE W~ 6),/\WK݆d^݇ >,h>^&Mb.#|1$nv8 w&?h%4qJ,}. d4e y؜&= Ğ<CX|.Aoʶk I]_gk>&<N3wk^Dֲf=Fx=_%kM&RQ$"(Q 
+KOGuFuWKKy?{]%{@B܀޾UO,?fx-񈅺?ܶ:`+
+cŧ|R>Dk:EKGGzrk|<FfOMslQ|2{_U^?XUɞ+*e~UfIzdխkߢ#9=
+m*r6ܟ4DAx.xڞh"ز"x\h`CiC[M{MS,6ӣ@W_x~/Rf$y3 ?|iq\rgUH]8Jz>TOO:Yb*gAӳѸdru ~&~uƍi䩁'B_wѼckņאiiw:.du1ʈX[	rr}+8. Tj(֋+y~M/SO0w)Мgwo\
+HR=k	
+(
+(
+(
+(
+(
+(
+(
+(
+(
+(
+(
+(
+(
+(
+(
+v.o!i\"D2 Vϥ~kPnY	^6V j3) Ru^ÎN1/b5)v[yk|8.Z}!&י~ߟWl3EN9_ Ƚw0AKW?콤~ʿ4MTͧ\ /+ɐ@ $>3|N1xOE->w'&<̧<) ~>;S0o)q@z)θLD|Aj)&HE[zuix,3:  wjǷZiߪz)# igqEC&;3.n <ʊ+~?O EWar%<
+
+E.Zu>9x
+Se's&o9G_X|+ aT2use
+n{~єqҾ$sVjb>_3x20Ϥvggu~~_0D>R	i) 阈Qk_M ?ZyF J'6뀫-Sh56YG42<Rъ0G W.m$?ٜ~ۼ3ia^ ~ zwg\cxŌ#Kj]G'G><vGntO7Vc1-~ ?+Yҵ]*T2ñFOS	 P95%"Tu,$̹Rdq}{ೠVŬ줔LHdB .z ; i#p^>8~+h/rt|GcWe%ͤmf(}4՛i~ފ 5	^FѺYR{#ګ}+scCz{3[m6'#'b%F8$8&k?+/
+aeXib`]M1%rPh ( ( ( ( ( ( ( ( ( ( ( ( 2jΓ^m*]61dXġ.z9Ti&ӷV4IɥwWv]ϓ w+*o@q0'M1)\uA `ض.f*F"]>s~Ͽ?kyܵƷݫ]ّ'<=HOأY/gq̎Ĺ'<wJWxWICHCHEuo/wAaWO	<REU$YiMtZ&O)ggul~xHm|;*ZmX1-#07cU+1v%$I_F~Wgu>ZTnOK>DG݁VkT9]<p7V\9?Rz%Yl5,ͧyn _L|;\ ~C{\+F_xrnwkVt~=Ou ÑxNyXD#K>K=,cyg=v,#?(^Wy+Gg:D< BQ]M~s#
+oX/u.X$#üXe9sg;{I^9n}_'_'-Yӆ~ 31K+a?fѥex MyŢI,ǸA ix}2}VUX-$-L?\WJvO(:} n
+<Beozf"؆k&ydPYt` @ɏVMfE\"nV*pJ	{ω>%|zzƣiVZEs(d+`#"|_|u`$U$OKY={?B\u<eoeR	]n֝t> R|N?k:kI3wK( zY+׍.>@<Ah[:%7рq~{ZĚk GGPE~6mr|䤽&/?~'0٤  /ro i}3/tKhF2Y&7EJX.y u8~u/v>Û9AgQU#)nHT ُZj>*Cuݜ)mIgH_Ga~. 3~K[KIkNu[O_* ( ( ( ( ( ( ( ( ( ( ( ( ( P##D.w6_V_G?ޡ$emMexSb_kC<[e47>#o9W8jⵤ5v}CӓkTsG &_3FncXK38N=~x
+k?jgk4[.2L$2휐~vQ_<9Ř̒TGW] ;>6eJN'Ț5mɵ՟i :`u7,1y;KcgrĶ(cy<A>oK?zOK)Nny5_Bl3oLcLR5#UOևb*H\I&GO|U}ލOmKL[ǜ0\7\o5UȸF^Τ^դ}Y]Y#-eW^;N~[~I\< ?M<rY]Շi.hwXrx+ ۖm1N5鬼SY\|wHKm= W°losuߝZq8,aRxl0Me%t~vex^"΍<_ai)B/=nG~V|FOQAg{X-ٌ6-<Y2p+ͨc1b9,p~
+pV[$}BF>GtO4QG C%gC&B3J>:_LoY~ipMCZp4rn<	I?qy</<(e6\#tE=zsO#&//g>hA;:kӛZwhO_M4|>"|SՖw6 mեB<U l-8T;$5NB]_zaY-bG
+Q3׾OnsKxcwL|وI3ƣ*г=oN9I[j2b~B
+n?_x,$0cB][oooV3KVˢVIl]Z%##G~]RǫxЁh`c;|fϪVoivokkQTaU@  V+
+(
+(
+(
+(
+(
+(
+(
+(
+(
+(
+(
+(
+(
+?ۯ-CƺZ& dmșT{Ϳ*ʎ/mdEU`z̰0a**|5"eYL6:JQM~G]t|
+~3xlnѬFFM{+BTV[O;3OhCE3JKѫ*-CGc]E̉rpdU:+(.ӧM]yj}k |5Oɮto%vwam  x?߲)|]n'ѵ?[p!2 n\A<A2xo쿬^]OQ5UMoq;ISцN {V7%<o/|S6Ȃ%!qp2NrI$bs~5R}ov嵖5D8®e[ѧwKMJkN\W?N_';N~;ddMi.GIdX wx<7Ø7-ܿr9K┺F+rZ$k5 9:ۦ[K7gJYE.C
+ ܛPa;ݶ׵;w ѭba>+;-c
+MjzS̒[\AdS @O0Y`yI)wm mƹR1hEm_ݿ+%-_g=J!%;PkF_/\^>.5;{ gQ*P:MbY|ޥkx^tow0P><( ( ( ( ( ( ( ( ( ( ( ( ( ( (  4 /]b4)a$6<#?:^K O~>(MKȐ㕆v !Cq
+*Ѩ ɹKLKpN7 n;G $
+(;?V
+)cQT}+  b=k*7*D~:q9Ynv#=8>xO'wo[5㌳0/KW|S}u~c	 o 4#сDU4E?.~[BƋq0JUFAK_\'X.]O- >ێ3.'Ǽn>VKHA|0]oU4hvqmoax&Cє__<sF~աjHOd85y X~~wڜqm>Q _&A}ATi<˛}94ےN[Ͷ&[ݼ*J+_C e/bmՎ~Ip=D QE QE QE QE QE QE QE QE QE QE QE QE QE  XxΩs@9cE' 95_/_OF/r Rq"@4,]׏fU.WWK,=!ʤ0{ɤ}-^_գOw9sG5H
+M<IJMe۱濶_['4%͞LkuwMb-~(/d`ѝAҭ
+wqȹy:'m.oP6VW2M}B38g.<LvTj'Z1qV+Z=O쯣E<]zR	J2RGUKܣZ~fĖ>jp[[w @:x]%xGؼ?fbӠpkf8σ/'s_a/KþVn/u{(EϪ#D_Aǚ0	ӽ<:moއYUqOh'|//-W~ M=3v(z3ktO˞zn?X
+0-{d	_{}CK81ϱ3:stWHlwm+< 
+ xSǺmR{	ʯ"$GJ] Q΄ne乵R2Lbh/ ~h $~'ÿ;FyLv)Hbl|z"E῍BмEd-BB!nhWv_)g QC)Av(((((((((((((s?JcYX|? k=&w_Y4Jekx`,R0@8*G~7??|zVTtOM_:gi^'_8cWTjs=.\|}O/ 0f?e8ZX<[7:^&~
+_:OaDڼ̻N2]3_* XOM.<)a((oa=DzGP
+ 	'z?OO{mMEږo_TB7B?+G\]2_VTrq^ipsY<QR~MK3+֦Ե7K<4Nc [%.="|: Cp/QV7:X/`=_9؟W/xI>X:ϳ)+sq"l!	&B5icxf /h<᷵jҷ#Wײex[Z)煓Jɗ ķ۲sK_D_Zh/Ib<Y!=Yf$+οiӅ8*tIh%#Y՛Q&նmaEU}<Ac,8UQIW|R |FeQ{wfɿ~2PSdK+ U=|	OZaW[%ֱp<Q,:_7|S |gx9?m: V/Cq@[Q/ 1D
+84Vxvm6CQw$,HbOR>ڮrAviH ı rz_ 
+~&8~|f3a?B(((((((((((((xg4,um:TfU*g.2WLNPO?|hsהּ-̈ujF RYңZ1Q]K5bW=y> 7ĉk~F%UmFnͰS	7'(gt+XbGֳ$
+@cYWT\YFDʍц?PMl`~~ ?L^hu8>aH??U'>j.DCt_ů |*/]nJˑ7Ѐ5P'O-6%׼Op4l-[-Nsk _Y_^8Y?<#m&B;o\Y&39US+(gH oQ:>6=̯w%ԫe&`r38oۻ	߫~KjjXD,#rG̡`y'
+'f'eѡOVL@lpAsK
+qth?f?sxoơuyȈDCر*:df>o+?FGƴ/#0s!\bƾ9  KM>& T_DZ![MccZ,k]$$<܈{2>%)X?h֤7Ğy@AWnqjUF@( ( ( ( ( ( ( ( ( ( ( ( ( ( ( (
+%~{L^"Hh#,4EUt,XpqW z޿K9dGYXd0=A?mX֝|q RqU8 ~/.,|b#]{y+uwح稒m߁&Y 9~K h$x4^|qh`pk( # ˴/^0v9ql\{6' 5s@ѴccVqg[PҊ(((((((((((((>B~)l/5?	]ҬekD,x,69Z緽S_bX#,pUF$sp*M7_ +?I[Ń^A n~o6=@/hvzuBee=_1hڧoRΡDf-G'p1 Wė ?e/  <9FEhYC]?~5]KU#vKkĉ$ZRG*ȉH |0?i{ڏmͣ\h
+@@ּW!,Mo-⯆PFGoNi\}UJ/Bqz}_U s;DU)A }E|'Y;|=a_\uCu:Kh;C vf=c xMo<CmRm[ľHK(8,~R~Q V?i ߶n>E%쬯?]WdgXPx$hfA$r#WR2#"-ͤW s(m$r(eu-h A4_=~)58WR+"ؕ|h$GY O#_ M/,O*g$^i'bY?jvHH_4*$n y YCm,{'?_ů	]h~%q}sIBZhg;j n r<;;}^(-Zfv:Ȅޟ#Kbm[Xf?+gy M
+|RhZ_',p|qeʭC+Or7!* xI 0t3ſ%ц\tvv%viPKE~nmA#~ѿ<qx uDF76mbh-
+>/ 4ԟ}'_>Y@\z-E˶G;K+yk_ E?j~՚Z~Ym5a5`qW*rW|j</.iWW^{;̀$cF$K_0 _#	xumOoz}souy3yaFpFvm M.?h%~>|VK^/MTzz1uHy"c8<u_8 C7%Z`>m] l *&p@݂hO	oGxs'/xo :~Cqt ۼt|d tn+__ &>4s~#|[u=kq\鷐C(g$b'#_ 5?X~ k?XGZNII|,q_HHXܲ*IRx?9D.qtol hhI}#-qE KPڏX`;-R;[}1GJ/ KU6_<7^g^]&'X.s.Gog>vm%[5w _[g? >ϲ"6:F#.dK D.ހ?Th8/ VeisEmUuDG Ё?qW+.5<Aަ5#^Z(*6̨X9޼Z+klO|)i|	)<W$sǨ#"qtڀ:?,3 ~ܿI?kwľ!2vsnWo &)S'+m>ᯇ[|QuʌyYb|FQ޷h ( ( ( ( (	S/ /7t%-,E$`FAQ^Ӯ>~8~+dltht{79\S ??  gھxma֣8L2$AI#P^@$o*ýMN{%CjD%QJ՘($_:~ڟ7|s]iHC[>snzA@"V./Maៅ^_+Voݪ]xx*JEd' 3Ѐ|+ ?gD($n*L{+#Z]+8cba"EP@  W" xCҿf K-	WŐ~"k5b$-JG ;#fXѾ#b
+o?C+(&\jIJ}(f|W E?BBk ^:3I;s6u漗o]<a׼+Mj}ZRծ]O
+A q@ ·aeIpS7{m8pɿ k1~~ T>o~uklt,yyv
+7SW?i o .Cү{2*31i8e OZk cχm_ {k_ +>7v&zeCK1FR4P 
+8  ?i#
+q`Mkå}Jm2M~;kX#_1ADʰ=,Qb@'
+ <	/[>"X/nԲ\J81%ˡo+{'T/ToV@ԁ-WmR!଱Ǽla_}_	1|J|][x@[^Enbtu+ VFRTNUQrۀ?+ `-*/:#4|JQ~g_yxMSR <5}_Si}s -<͛1Oȿ0Ɵz_,O_Jİ]E<`*69F৿Ή;Fd\͓#lk\e|'89 _	&?; χ|j= .i|S,v7:m_mDOU&lzh Q~Dym5 x.ukRe]fnmݙDV4zo7K	+	#x-[}oZ|ղ#nVXZ   HogPM-8$.g 9 Ո[+?\ XڣE|; E $|t^?MóIw,Al[I<)<'?jOÿ
+%#.t9nai\.=@˟ˍe? O3 fmj<oo gWg;#׃ظ5f1iAi 	Z?#kĿ`?h/F}/□o4InBN	,s*:dt!_	+]hz׆59ҵ]<"#]Y^A#r0 ~˥}|_/N<qhd vqu|Oy?9?7\y۽}I  i~-|Gm~7~&u;VПS־nSQU	(9K;
+C|CH4[,E,I+I(ev\(- 0m C gY?n??𺴏o/2M P 9#Y<Uo
+h>׼hu!M̻HdFvyo~ 0|M?	|OF%h&Ya%Xá" ?tN  U Ǜߴ+A4-&c2ۀwq @O۷	k\~"&m~qqK i#>2Hے+nǽcǳQC]Z5	tK{s&6Ewujnv|@ ~[[><Mῃ.>yeԶK(9H6RAXT
+2_8~|%goB|dͪݍ{-.;FO8I=.#{^ v^u/kFxmRY[]6o ~ G +>0է4)	Cq{$.#b>_#dl E 39%I,҆IKu| 2)~N
+|>vxAHƤٴ
+ȌT(8^ QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE QE 
+endstream
+endobj
+16 0 obj
+<<
+/Type /Font
+/Subtype /Type0
+/BaseFont /OpenSans-Regular
+/Encoding /Identity-H
+/DescendantFonts [ 18 0 R ]
+/ToUnicode 17 0 R
+>>
+endobj
+17 0 obj
+<<
+/Length 903
+>>
+stream
+/CIDInit /ProcSet findresource begin
+12 dict begin
+begincmap
+/CIDSystemInfo << /Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def
+/CMapName /Adobe-Identity-UCS def
+/CMapType 2 def
+1 begincodespacerange
+<0000> <FFFF>
+endcodespacerange
+2 beginbfrange
+<0000> <0000> <0000>
+<0001> <004D> [<0032> <0036> <0041> <0035> <0030> <0020> <002D> <0043> <0052> <0049> <0053> <0054> <004E> <0044> <004F> <0056> <0045> <0046> <0075> <006E> <0065> <0073> <0050> <0072> <0070> <0074> <006F> <0023> <0066> <0063> <0069> <0061> <004D> <00D3> <004C> <0033> <0068> <0064> <006C> <002F> <006D> <0031> <0039> <0067> <0055> <0037> <002E> <0038> <002C> <005B> <005A> <0062> <005D> <0057> <0048> <0034> <0025> <0028> <0047> <0029> <0042> <006B> <0051> <0077> <0059> <0079> <00F3> <006A> <00F1> <003A> <00E1> <00ED> <00E9> <007A> <004A> <0076> <00FA> ]
+endbfrange
+endcmap
+CMapName currentdict /CMap defineresource pop
+end
+end
+
+endstream
+endobj
+18 0 obj
+<<
+/Type /Font
+/Subtype /CIDFontType2
+/BaseFont /OpenSans-Regular
+/CIDSystemInfo <<
+/Registry (Adobe)
+/Ordering (Identity)
+/Supplement 0
+>>
+/FontDescriptor 19 0 R
+/CIDToGIDMap /Identity
+/W [ 0 [ 595 567 567 628 567 567 258 319 626 613 277 544 549 748 723 773 590 552 512 609 609 557 473 597 405 608 350 599 641 336 472 251 552 896 773 515 567 609 608 251 364 923 567 567 543 722 567 264 567 243 326 566 608 326 918 732 567 817 294 722 294 643 521 773 772 556 500 599 251 609 264 552 251 557 464 265 497 609 ] ]
+>>
+endobj
+19 0 obj
+<<
+/Type /FontDescriptor
+/FontName /QZAAAA+OpenSans-Regular
+/Flags 4
+/FontBBox [ -549.804687 -270.996093 1204.10156 1047.85156 ]
+/ItalicAngle 0
+/Ascent 1068.84765
+/Descent -292.96875
+/CapHeight 1068.84765
+/StemV 49.8046875
+/FontFile2 20 0 R
+>>
+endobj
+20 0 obj
+<<
+/Length1 8560
+/Filter /FlateDecode
+/Length 5962
+>>
+stream
+xY	\SW?߽7
+J!*"]D![!  "REƺ (j*UZj-c}vZen&}w{9o!R$yыO(]xV!c%%'	qK/Ŀ"_ZQ(6o'd!c?I'ĩU
++J\~q_	z""DU'N_2?HfX̊80M!35-&oGVH2*;#ꡧ!9C%BjZ4k|Ylj<+ѤW:.'Bjsquq'K\J{^B9à@^VښOS-pbBLLZʹ;6y9si^u?/E$4վJF,Z^hƹ|?	bgkuBĢ{ì*;[ ^XrVJ6%)6n}v|0gW-u# }Ջ_>;5-]L*!U'G9G	jVZ U,aSϑLxƗtt; yoLK_RPS)6=sDy4bWبQrB3^wVX1t׋
+U;3g؆n56B.QRw/3:X{u%HFPm#d(I=	6x_Θ%yA_MC{;cb;37ǎéPK9
+m`SCp[+@93L\Vk|:RsI'<O
+C\!Y6Kkn9&ݐ{c^iw߾ `S {ʾڟ;'k2ϐidjڂ4ଵFU]
+V/._{`HxS`%]?f3b֯:R{C!D+zO2AFZizjGܡJ\4ȷROX{ꬹeXUTlGӳ -Q]OWsB"Cdۙtfn9DuW԰xInJ!ycBPDo_Ww|GQ5bxDaFF׀^Bӂ,ӊ.y(e$Rv'wiQϣ )lELa(Q6Z-Ec*(9p#n=K0o:qJ{มтg{vKTV͡2flv+:qMa>
+5ܿB}?.Y0JΝ:A׎б|thJ=g}@JFLu.1&س,=3bkeT0Mͼ{ΠC1Gs_KMwVŘXlvTƕuc`r)ɝFfT}XT\)pex8]e<:HwF#ZF}'h\އ&;B'7LNlvjsfT+)f5E~j:Ŵ?	WIG_t
+;f-	1@65dz/2Ysy3>mER5m6l޼Ɯ3NF{ҧo~ِJy['R3 jł%>vVUV]8)'1e
+敟
+lQskjڴJ0o<㛒 9	N*G蘘~)
+K$Wy@3UǗ豐{YȄ>erݭQ`\
+A򔦘1HЌt.j]#\̅ j͸5jna>eX,TBz̡Y!VVJiXF.z}	ںS%0gv'ܼ?;ڠy}(2gzJ&z zzryg^~9 &g'րT$]:\25)7n&r'vG*?=1	0o*B'lf{{2{SgM[`ڴƃ`վ::GW*+/ʡA$f\:00pp/V˩JS$5xNJH;.4pF0,#|K`sDK.v,KCl`BγgpzgaD/P獁Pha/E^;QjE4`̆@U%BSY5.+~NJIL	S|;`llڏ>@nq&HpZJ
+ZhyxaJc<8r10
+iÝ^1?;rי42jV:MhheSҴ{g2c/Ц̟y6?5;_j\`2qdPRѣO?e"TP9c%J)W$Թ1@ `Sx5.I
+5\[l]1a0hv|xUim*m*۳\Ȱk$g:?O>}?/١YSy~dPF_my;`cF9ޜ	iJf	zbMJiy=#uKu켊Bo*)[RQnȪ^I]-63kT5򂅶6^;Gp!+&¨Q<
+"؎~:Ē~:A2tRNvu%_5/3I^b	(svK# uuؙ-gDaZEuݬpI	-!)1ն`#$'ݫ˝qI"XPyJ\3/f>wT9LP릛ڜXd Ae@=Zl8S>@WΠ	1q@#醹@R>u0fz_}Դ|$O:	G:/X" Gj?J&,_پXmo<P	[Pδt,FMc:o9*lC9[]8gSiMD[Yd,<SYl燄v-II11m3&`F;ZFc9W+V$$$4p?5,zNV-FRD4O!dLqLr/ZHZ\Q:?z\p@*}捂< \S)UNQ~G5U|~aXX)5?R9^@PB|º
+RۊbGb1.P~df!Z9~]|װ0wFiٙaJO=[eQE`9ZRLGZ֯7QGg=wS"=g^4u;^6?}DG"MO-v:P֔EhƍDӨJ1#plh"X F%9d3?(?Q7?dbDDnx#>~/d	u5u-|zSD$@В]B &Nt!7̬،{:pmbNy:7/HT^		)	6-84J  [Z8+ԧ$Aވ>~j*K\8{kG]g曫<|^MP>)jYj.(g&;hnf=q1Rn#t(0"3C¢
+AVZu+>3ǎx6?L&koW.+~}BθpO̡j`4TU"37)}*b$	jPnrEK&׊?5#}J|Zs2nF-=bmmTNhbkc.#2]L)<W&:ڣP0O" ̀+|)N@Mݐ0ÝuojH{b/adB'&hz{9#Tv8{ݿc-i 7MHmkMJN2pRmOu)<ozrLWz s`Hں릞`H=ZZjjk_ѹ8WSwcT*Zo=:;/5)mz@qkvmLHd|`H_ߡ3w~whx(4{`ki$b&Qj_=V	C/o}''?x6wbk':ؕ톝;;T"Vfi:+V"iKL`|_ns]'Z#pY9 (jj2Lmi iz1Ř qoxFu!΄9zg<-c s@}zƴS,9#r!8ڃĒ##f#z/аw/H"Lq9?Klg<PI+tgDcw;4\_[;ηCns#tYZ>-)+8^;)ꡲ T:tH#g
+)gks Yqwi)]cjLVgx$/GIiELiBaQ~~1:shef\` F-zn}o9͉ȮP.YoC=#ձ$Yթ4	5X4czAϪ0V^.T}ִV.vy,Lt	o>Uv0&xL猏lԄB/AF_sfG5w,ś6]`=*8 k*#G&wl
+;۱cCO [;d옰#Qo234r?7 utw)kb|VZviђy+30V~EYu9.kлfwGFL>Xg!O2+}2+x0]bLo0ٌF1tRBsX뢒f]ȡ.$d!Vw'gϱXy.{#CC>z/@ᷯŘ;ɂN/yS_2+ n)5#B~L}e!$Hpx!#]kGȐeb$$"9͵b5"fۄcC+6bY>eI/z^WAlR+Jz8>Ssjw^\b/ˤ>\!NUR%$Z8H#&{<Ie/Wܣ	{	NqeL*BulR1{H'JR8<#^t3ŁD#RPVz7҆49AR'NA&r|"h`dhƼ|Ȏaٝ]΋Z܏"(F"zK̉j_J\$auҡRiPzNzC!C;w-C?~Xa}l5*_SwXe}fݓ$b'R2 85Ɉr͐d%~dCr-BoZLTпpb $sl8'%p}!^dYUT"de!i4qJ|~
+'˒Y	^H>GSJ|w0~O5xN^O=UOJ|nB5pʳv<W ⍟:3g(rܽHح
+IEJk"IWE
+endstream
+endobj
+21 0 obj
+<<
+/ca 0.101960784
+/CA 0.101960784
+>>
+endobj
+22 0 obj
+<<
+/ca 0.498039215
+/CA 1
+>>
+endobj
+23 0 obj
+<<
+/Type /ExtGState
+/SA true
+/SM 0.02
+/ca 1
+/CA 1
+/AIS false
+/SMask /None
+>>
+endobj
+24 0 obj
+[ /Pattern /DeviceRGB ]
+endobj
+25 0 obj
+<<
+/Filter /FlateDecode
+/Length 2865
+>>
+stream
+xnܺ]_ y A _Z>}$-'E%EjM]Ҏ-%R">CrH]k˛]{s_ʐSߋv|.;so?+%>x*oRwjGp?ۺH^u`fAk@*⏿RvTpWQ\S|FwzP\~Q%U2`~<<dK>brϾPC5UBrBRc[Ko_hxGTkjsF5!S7|Jv?F{QV	=huDK߾(?~,/v?~?>׷7 UÀ='`?YR[2iRh=vYT4b٫kdŤK6[5Atz;bhۭn'*5uPN(
+{)cMz`@LZc21}3ҍ]E|hWjx)7H!d Xw`Zc`;@'L8W5lwQ2
+ЀQ=`Q`ڐ,$>an1Y	G ulr	OXa FL֒(;o]2ԁ#iO5P3<cPgՃ7~u|DTh~Y?QΈXUI7F[`a2:83u@M9c1mQ[xN E4aȴvZWF^+_N$!+6hWKޘ1~4ڢ41mTv"3FfrЪ^4Z0QL٘\Њ2m3L'/W&&SRxd2_B"BYޅa,65\/M'.dÜCC49s{n3S;~`ltYZg&[ʹ %!7ѧ9 INy$Uƫ1o061a80bW)@Q[67#1C1ÿyϨ5 #$Q젌ޢ`+&<Qu-Ju'9XQ\{mnnss67n7壬.,MN=@E.mtA
+"LK<g̲t&@aZ"R `|D#o.
+CkTbJ-b ;3a@060kͼmm3o5o++\6`.(̨֗;,H#>(/帨)4&`9I-ft#>uh9Q;ؒG܂oll-Cm'
+DP>].som @mONܵK1K)L
+KuMDʁ	%Kkd--@8!  0 hPX
+uDJnmTH0icZn=c<XsCÝkUq=)Ozb2FhZjLrX }?FБD;KZ	*(ڦhk})݁DA\nyC8H_/-i;jߵ'ꃂ~#m7u|fjw&j5&e-<v!~wh+o]n\Gj96Z[LfJfefN:7z{q1i:xl<agCxoؑJ+%~mB(lԆІ*:ә|oLIYV:U߬Ci['*lں۰w+_6JFE7doJP2JSg<G9tД%b9'"%Ò(Ä?9.y0?>!	HS@b6[=aZƥ
+D.,'Z
+&ET"EsAs_nR+jdpLVV;h|)hjsIygcRCӤh~0]Q)=jD%箫tJmM$VfWc`kSPb,M4G)*[0IۂkZoBn7M7_ :D$'0[[$"tC]*hW*yJEl|WB^&%EAZ k1X^ae|BE@RgCs0{ܺ̮tna&9&-N¨7FCa&I?%=|,oJ{jk2,?!>5*9$5fefhҵNOā@C|ut f0"nt|L;ҘehяdtcK@[CrdY?/Axd86EӘZZR-VZQ/hE/ʛzmx|bT;dNL_6Ttz)GI:jߘD(\Ab&C)5"fމ8$D|f3FOcf(X|Nja~Vi>ǒ6;E])}c
+HXaKZ˕t5ȋ]%6j4m>)jwn;<VF9Od9u7/b֧XVWFxCAAW(MUʍtUҌ(`DV̍D"8sy.e96M4acXnfpl+\
+endstream
+endobj
+26 0 obj
+<<
+/Type /Page
+/Parent 11 0 R
+/Contents 28 0 R
+/Resources 27 0 R
+/Annots 13 0 R
+/MediaBox [ 0 0 595 842 ]
+>>
+endobj
+27 0 obj
+<<
+/ColorSpace <<
+/PCSp 24 0 R
+/CSp /DeviceRGB
+/CSpg /DeviceGray
+>>
+/ExtGState <<
+/GSa 23 0 R
+/GState7 22 0 R
+/GState9 21 0 R
+>>
+/Pattern <<
+>>
+/Font <<
+/F6 16 0 R
+>>
+/XObject <<
+/Im10 15 0 R
+>>
+>>
+endobj
+28 0 obj
+<<
+/Filter /FlateDecode
+/Length 5126
+>>
+stream
+xۮܶ}B"~ S@6Ɖ 8NE%)J;gw$Kx\q8rD?]x1Ԇ?AYQkTOWޝ޹|>i!j SUK~|r?}?7կnvfJe?zz`tQU'EHnvDZlڮUkEjV>(qJڭnکcw픰XK蚅WMôhE-¯e
+1iMxJ|=	ĄR7		\3),yD'm0M=50oה_sijط[طSoA4JH{w)>I#iĮt"&sL|bBLL{sbNU)@qCr9P'up"U'^+&(eqN	'RuJ9VF::8̀}{}1U ;hg+(JxI%kn߿X/`8}{U}jP瓠>X~W}dk*b28z>#zC%t$=:ȫ1܈z30v<ګ8{^醎༉=F0F1G{8e#La| N$>#h4J[yi:`)z%֘T=2fU=I0L$rKo3%ӿAFRrvR[(,uL#Ũ3ck(Fhخ9ϔUbtÙULjcH4FTHk6$~4g*R؜Q+C{F:v]<sU@J:seդGCZ:Y!zezld[Ozsc>Z|Yx?>|ߗwwUޜ$[pF,x7gG^C)~A6Ep1虢p]Ɏx o$q02A0LQX-z#&Mb3܄
+h;MdNGc4d2`A8%6Wԉ$3)w8!o+:C,R	Mxi\Nc&!6pA/3<ÙZRܘGJ^.ÊmEvxhn7B -aPW[K^Pi&m,XJV6W).1Ҫ)MϭFIAD:u֮lau3l!AjmJ<VΜBF	s<+Yu pNEt;z@Jj`T*$RQӰ%*'I%*Ӛ^>4*җjO2("a\29:H條i'=ZI@;u<Xa^u VEdlZ[VEjlSKX)4?.`r`V\$ g(vq&@SIhbb4%Xro quh524U7͂Kn&E(  Cѥx czQ#@> }D&VNPi"ٍ56 K	b"*DT`j;A\DJ-DøO\pQvn ׋x_/k`:e z~TNT|GL$9?nwu7J-DÁ#^ \ď5P" Q0EE'*#&bz~|?Vm[DcLG@T?k`:e a\NT|GLC.L~m(Q;EbLG@\ϯ502 q=?EE'*#Mdϯs~|?ܾ^Qvn \ď5P" Qp"~q-*:Q1/zDLϏ7|7J-vX/EbLG@\ϏjQщi8[ll[DcTG@T?k:E a\NT|GLÑL?0s Qp"~鈗cLG@T?kQщ1qL?&b/5Q%j܀10bbE o(Hc&=E2{SMU۱.!)-3s(|&|KnA_ߡߙq's: zǗ]_O$Nɔ?(M-iGwgX fnݶSޑJQT:_X `1@7,Gb7%Go(93QSTh.i63oT19nr43kuסOapJ.ʻVM=pgd÷N£q4M{/e /	LZh.8x);SP)3R6<7xx\p]'|#oVgפ˃NvW\Vp	J3cA5w:ẏSWzise|6|t"s-LFԚI,H>1:QWPo/|{ʨJɕYmWap []5!ܫ>˗={R9sΧspI(mCsg
+˄`?S /jLO*z {{JR.WYAi/]{!(MK5>3S&:S:{:̙g`5[ kg0,3$85sW3kͬy|uJvk5ÊxE6C7xRֆc]`Εț^8!zvHv=`i`ƊSӌ%|jY;s>У#W
+lHܤvƾhI/sx*פsT*Xl?jBO5c/|A()0$,θfpn{;C%d 9Se
+x$_m1IQYҧQc:a@v(6PLjpu%$=QY\TP<ڕsNN=0!ve?6K''%{m%;Po>kN]Eb;x}?Z͚Vog5<>M}&J'KnGhH
+8VH3O
+;Cs|Y8T9.1;Cp8Iʯ]3|4@AQ\ >`V&Ӳ.r>u%c fN?0lIAIढ़u9{hۓ9֚{tVjd1Qd^d^ɤFLwrM2iÛSa'Vdҋel>o1r:]2:K3Yͭw#j|:cΩN/w{B!7sXa,AoTmzaδ(Z` vkj8vJҵ'BQ9tbmP9Tk^RN5fz@v{
+JJJ6cL];%p`d$w%G)E{(躓g+`Wi =J`8Lг=Ǉ2t$y9.Ţlu蚂)cc'6.UI&]\r2^AAQ条B3x-Si0"WZ+7U'\5wيvoz	ϸR k7BZVL/ ?e	1X[n] ,#szd޳/`i0#nd'kEßEx^N/@@Zͺdsj\LժYRIX@v.!UGe$qRgCn@)<QLY
+KUi7G-b'V~yٱ&i_vv2fv턀_sVs=la8ªSҮlݳԏ	L*m*ρy<%\	ixyLEPѤTR;.eD[5lPkB1Ωg`yfD"]+طw3O &X^Oxa~wLv{4(TY=~!ME|LGss"Ҏ(S3'7կ(u~0%ƚ	wՐo=<JIw4hcJt,g0 P  ?f<}ym1P"ԌCפ!nh*JEn^VhzRR$ dB+kʸL5>h:Ч#E7 OI`u̮t2Gq!cg55Qc+ԕa&[&sϟ)9J׷vߺĢKS*n5WS
+J񭴵Cds,8G
+z2&OY)4iJ2zTpb{%>ֵL!P[@uYRVt-Rf5~]*=SCW$TJ^s~M?-]? lQΎ6?>w;sfVOak:c\SK:a{wE;3L-szKz̻H| 3.8 4XJ?wI-q5lӿ׫2U'MAܥYtVGGgJ{:dsuI?׌%yam
+yبN,؟4Xn0}ZneytVѸN NG㺈s|a֌Q+.ߐFckmsy`r]5#J"5sH$g.В9ocGEu'"ph/v+SːջK
+endstream
+endobj
+xref
+0 29
+0000000000 65535 f 
+0000000016 00000 n 
+0000000069 00000 n 
+0000000123 00000 n 
+0000010812 00000 n 
+0000010969 00000 n 
+0000010994 00000 n 
+0000011188 00000 n 
+0000011229 00000 n 
+0000011274 00000 n 
+0000011338 00000 n 
+0000011442 00000 n 
+0000011550 00000 n 
+0000011675 00000 n 
+0000011695 00000 n 
+0000011909 00000 n 
+0000027153 00000 n 
+0000027299 00000 n 
+0000028254 00000 n 
+0000028784 00000 n 
+0000029044 00000 n 
+0000035094 00000 n 
+0000035148 00000 n 
+0000035192 00000 n 
+0000035285 00000 n 
+0000035325 00000 n 
+0000038264 00000 n 
+0000038389 00000 n 
+0000038603 00000 n 
+trailer
+<<
+/Size 29
+/Root 6 0 R
+/Info 2 0 R
+>>
+startxref
+43803
+%%EOF
