@@ -28,3 +28,22 @@ Los módulos futuros ya están registrados, pero permanecen deshabilitados hasta
 4. Reemplazar los archivos de la aplicación conservando `config.php` y `storage/uploads`.
 
 Cada proyecto trabaja íntegramente en ARS o USD; el sistema no convierte ni mezcla monedas. Cada pago genera automáticamente un recibo y se imputa a los cargos elegidos. Materiales y Mano de obra se mantienen separados. Cuando se carga el presupuesto final, lo abonado previamente como Ingeniería se transfiere automáticamente a Mano de obra.
+
+## Seguimiento de presupuestos
+
+Los presupuestos enviados quedan asignados al usuario que los creó y reciben una fecha de seguimiento automática a los **10 días hábiles** (lunes a viernes). El panel muestra al vendedor sus contactos del día y vencidos. Desde el enlace de cada versión se registran contactos, reprogramaciones, aprobación, rechazo y notas; aprobar o rechazar cierra el seguimiento.
+
+Para actualizar una instalación existente, importar una sola vez, después de las migraciones anteriores:
+
+```sql
+SOURCE database/migrations/2026_09_04_presupuestos_multimarca.sql;
+SOURCE database/migrations/2026_09_11_seguimiento_presupuestos.sql;
+```
+
+Configurar `quote_followup_cron_token` en `config.php` con un valor largo y aleatorio. Luego programar una llamada HTTP diaria (por ejemplo, a las 08:00) a:
+
+```text
+https://puntodomotica.com/punto-erp/cron/quote_followups.php?token=TOKEN_CONFIGURADO
+```
+
+La tarea envía una única vez cada recordatorio al responsable y a `iescobar@puntodomotica.com`. Una reprogramación habilita un nuevo recordatorio para la nueva fecha. El endpoint rechaza llamadas sin el token configurado.

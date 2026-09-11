@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 $a=$_GET['a']??'';
-if(in_array($a,['new_quote','save_quote'],true)){
+if(in_array($a,['new_quote','save_quote','quote_followup','save_quote_followup'],true)){
  require __DIR__.'/app/Modules/Quotes/module.php';
  exit;
 }
