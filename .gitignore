@@ -1,0 +1,4 @@
+config.php
+storage/uploads/*
+!storage/uploads/.gitkeep
+
