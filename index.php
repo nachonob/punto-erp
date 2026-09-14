@@ -76,7 +76,7 @@ if(in_array($a,['quote_view','quote_print'],true)){
  if($logged&&$view&&!$manage){require __DIR__.'/app/Modules/Quotes/technical_view.php';exit;}
  require __DIR__.'/app/Modules/Quotes/print_v11.php';exit;
 }
-if(in_array($a,['new_quote','save_quote','edit_quote','update_quote'],true)){
+if(in_array($a,['new_quote','save_quote','edit_quote','update_quote','duplicate_quote'],true)){
  [,,$manage]=recoveredQuoteRouteAccess();
  if(!$manage){http_response_code(403);exit('Tu perfil es de solo lectura y no permite crear ni editar presupuestos.');}
  require __DIR__.'/app/Modules/Quotes/module_v21.php';exit;
