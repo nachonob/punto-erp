@@ -130,6 +130,7 @@ if(in_array($a,['save_quote','update_quote'],true)){
         if($status==='enviado'){
             $next=q12FollowupDate($date);
             $db->prepare('UPDATE quotes SET sent_at=COALESCE(sent_at,?),responsible_user_id=COALESCE(responsible_user_id,?),next_followup_date=COALESCE(next_followup_date,?),reminder_sent_at=NULL,followup_closed_at=NULL WHERE id=?')->execute([$date,$responsibleUserId,$next,$qid]);
+            $db->prepare("INSERT INTO quote_followup_history(quote_id,user_id,event_type,next_contact_date,notes) SELECT ?,?,'enviado',?,'Presupuesto marcado como enviado' WHERE NOT EXISTS (SELECT 1 FROM quote_followup_history WHERE quote_id=? AND event_type='enviado' AND DATE(event_date)=?)")->execute([$qid,$responsibleUserId,$next,$qid,$date]);
         }elseif(in_array($status,['aprobado_inicial','final','rechazado'],true)){
             $db->prepare('UPDATE quotes SET next_followup_date=NULL,followup_closed_at=COALESCE(followup_closed_at,NOW()) WHERE id=?')->execute([$qid]);
         }
