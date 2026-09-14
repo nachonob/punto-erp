@@ -37,6 +37,10 @@ if(in_array($a,['save_quote','update_quote'],true)){
     if(!hash_equals($_SESSION['csrf']??'',$_POST['csrf']??'')){http_response_code(419);exit('Solicitud vencida.');}
     $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
     try{
+        $responsibleUserId=(int)($_SESSION['user']['id']??0);
+        $userCheck=$db->prepare('SELECT id FROM users WHERE id=? AND active=1');
+        $userCheck->execute([$responsibleUserId]);
+        if(!$userCheck->fetchColumn())throw new RuntimeException('La sesión pertenece a un usuario que ya no existe. Cerrá sesión e ingresá nuevamente.');
         if(!(bool)$db->query("SHOW COLUMNS FROM quote_items LIKE 'is_manual'")->fetch())throw new RuntimeException('Falta ejecutar la migración 2026_09_09_presupuestos_items_manuales.sql.');
         $qid=(int)($_POST['quote_id']??0);$pid=(int)($_POST['project_id']??0);$clientId=(int)($_POST['client_id']??0);$listId=(int)($_POST['price_list_id']??0);
         $s=$db->prepare('SELECT p.*,c.id client_id FROM projects p JOIN clients c ON c.id=p.client_id WHERE p.id=? AND c.id=?');$s->execute([$pid,$clientId]);$project=$s->fetch();if(!$project)throw new Exception('Seleccioná un proyecto válido.');
@@ -77,13 +81,13 @@ if(in_array($a,['save_quote','update_quote'],true)){
             $db->prepare('UPDATE quotes SET project_id=?,version_no=?,quote_category=?,currency="USD",quote_date=?,quote_families=?,quote_template_family=?,price_list_id=?,materials_amount=?,labor_amount=?,labor_description=?,subtotal=?,tax_mode="sin_iva",vat_rate=21,materials_tax_mode=?,materials_vat_rate=?,labor_tax_mode="sin_iva",labor_vat_rate=21,total=?,status=?,notes=? WHERE id=?')->execute([$pid,$version,$category,$date,implode(',',$families),$template,$listId,$materials,$labor,$laborDesc,$materials+$labor,$matMode,$matVat,$total,$status,$notes,$qid]);
             $db->prepare('DELETE FROM quote_items WHERE quote_id=?')->execute([$qid]);$db->prepare('DELETE FROM quote_labor_items WHERE quote_id=?')->execute([$qid]);
         }else{
-            $db->prepare('INSERT INTO quotes(project_id,version_no,quote_category,currency,quote_date,quote_families,quote_template_family,price_list_id,materials_amount,labor_amount,labor_description,subtotal,tax_mode,vat_rate,materials_tax_mode,materials_vat_rate,labor_tax_mode,labor_vat_rate,total,status,notes) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')->execute([$pid,$version,$category,'USD',$date,implode(',',$families),$template,$listId,$materials,$labor,$laborDesc,$materials+$labor,'sin_iva',21,$matMode,$matVat,'sin_iva',21,$total,$status,$notes]);$qid=(int)$db->lastInsertId();
+            $db->prepare('INSERT INTO quotes(project_id,version_no,quote_category,currency,quote_date,quote_families,quote_template_family,price_list_id,materials_amount,labor_amount,labor_description,subtotal,tax_mode,vat_rate,materials_tax_mode,materials_vat_rate,labor_tax_mode,labor_vat_rate,total,status,notes,responsible_user_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')->execute([$pid,$version,$category,'USD',$date,implode(',',$families),$template,$listId,$materials,$labor,$laborDesc,$materials+$labor,'sin_iva',21,$matMode,$matVat,'sin_iva',21,$total,$status,$notes,$responsibleUserId]);$qid=(int)$db->lastInsertId();
         }
         $ins=$db->prepare('INSERT INTO quote_items(quote_id,product_id,is_manual,category,brand,section_title,block_order,sku,description,unit,quantity,unit_price,price_list_id,subtotal,sort_order) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');foreach($items as $r)$ins->execute(array_merge([$qid],$r));
         $li=$db->prepare('INSERT INTO quote_labor_items(quote_id,title,description,amount,tax_mode,vat_rate,block_order) VALUES(?,?,?,?,?,?,?)');foreach($laborBlocks as $r)$li->execute(array_merge([$qid],$r));
         if($status==='enviado'){
             $next=q12FollowupDate($date);
-            $db->prepare('UPDATE quotes SET sent_at=COALESCE(sent_at,?),responsible_user_id=COALESCE(responsible_user_id,?),next_followup_date=COALESCE(next_followup_date,?),reminder_sent_at=NULL,followup_closed_at=NULL WHERE id=?')->execute([$date,(int)$_SESSION['user']['id'],$next,$qid]);
+            $db->prepare('UPDATE quotes SET sent_at=COALESCE(sent_at,?),responsible_user_id=COALESCE(responsible_user_id,?),next_followup_date=COALESCE(next_followup_date,?),reminder_sent_at=NULL,followup_closed_at=NULL WHERE id=?')->execute([$date,$responsibleUserId,$next,$qid]);
         }elseif(in_array($status,['aprobado_inicial','final','rechazado'],true)){
             $db->prepare('UPDATE quotes SET next_followup_date=NULL,followup_closed_at=COALESCE(followup_closed_at,NOW()) WHERE id=?')->execute([$qid]);
         }
