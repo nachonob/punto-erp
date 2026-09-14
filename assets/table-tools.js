@@ -24,11 +24,12 @@
 
   function enhance(table,index){
     if(table.dataset.erpTableReady==='1' || table.closest('form') || table.dataset.noTableTools!==undefined)return;
-    const headers=Array.from(table.querySelectorAll('thead th'));
+    const headerRow=(table.tHead && table.tHead.rows[0]) || Array.from(table.rows).find(row=>row.querySelector('th'));
+    const headers=headerRow ? Array.from(headerRow.querySelectorAll('th')) : [];
     const body=table.tBodies[0];
-    if(!body || headers.length<2)return;
+    if(!headerRow || !body || headers.length<2)return;
 
-    const dataRows=()=>Array.from(body.rows).filter(row=>row.cells.length>1 && !row.querySelector('td[colspan]'));
+    const dataRows=()=>Array.from(body.rows).filter(row=>row!==headerRow && !row.querySelector('th') && row.cells.length>1 && !row.querySelector('td[colspan]'));
     if(!dataRows().length)return;
 
     table.dataset.erpTableReady='1';
