@@ -28,7 +28,7 @@ $amountJ=json_encode($conceptTotal,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES
 $labelJ=json_encode($conceptLabel,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
 $statusJ=json_encode($savedStatus,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
 $inject=<<<'HTML'
-<style>.concept-price-panel{margin:16px 0;padding:14px;border:1px solid #ddd;border-radius:10px;background:#fafafa;display:grid;grid-template-columns:1fr 220px;gap:12px}.concept-price-panel label{font-weight:700;display:block;margin-bottom:5px}.concept-price-panel input{width:100%}@media(max-width:700px){.concept-price-panel{grid-template-columns:1fr}}</style>
+<style>.concept-price-panel{margin:16px 0;padding:14px;border:1px solid #ddd;border-radius:10px;background:#fafafa;display:grid;grid-template-columns:1fr 220px;gap:12px}.concept-price-panel label{font-weight:700;display:block;margin-bottom:5px}.concept-price-panel input{width:100%}.block-material-total{margin-left:auto;white-space:nowrap;font-size:18px;font-weight:800;color:#ff6702;padding:6px 10px}.material-block .block-head{gap:12px}@media(max-width:700px){.concept-price-panel{grid-template-columns:1fr}.block-material-total{width:100%;margin-left:0;text-align:right}}</style>
 <script>
 (function(){
  const savedAmount=__AMOUNT__,savedLabel=__LABEL__,savedStatus=__STATUS__;
@@ -46,6 +46,28 @@ $inject=<<<'HTML'
   if(![...s.options].some(o=>o.value==='enviado')){const o=document.createElement('option');o.value='enviado';o.textContent='Enviado';const approved=[...s.options].find(o=>o.value==='aprobado_inicial');if(approved)s.insertBefore(o,approved);else s.appendChild(o);}
   if(savedStatus)s.value=savedStatus;
  }
+ function updateMaterialTotals(){
+  document.querySelectorAll('.material-block').forEach(block=>{
+   let total=0;
+   block.querySelectorAll('tbody tr').forEach(row=>{
+    const manual=row.dataset.manual==='1',productId=row.dataset.product||row.querySelector('.product-id')?.value||'';
+    if(!manual&&!productId)return;
+    const quantity=Number(row.querySelector('.qty')?.value||0),price=Number(row.querySelector('.unit-price')?.value||0);
+    total+=quantity*price;
+   });
+   const head=block.querySelector('.block-head');if(!head)return;
+   let output=head.querySelector('.block-material-total');
+   if(!output){output=document.createElement('strong');output.className='block-material-total';const actions=head.querySelector('.block-actions');if(actions)head.insertBefore(output,actions);else head.appendChild(output);}
+   const label='US$ '+Math.round(total).toLocaleString('es-AR');
+   if(output.textContent!==label)output.textContent=label;
+  });
+ }
+ function bindMaterialTotals(){
+  if(document.body.dataset.materialTotalsBound)return;
+  const refresh=e=>{if(e.target.closest?.('.material-block')||e.target.id==='priceList')setTimeout(updateMaterialTotals,0);};
+  document.addEventListener('input',refresh);document.addEventListener('change',refresh);
+  document.body.dataset.materialTotalsBound='1';
+ }
  function syncClientFromProject(){
   const project=document.getElementById('project'),client=document.getElementById('client');
   if(!project||!client)return;
@@ -59,7 +81,7 @@ $inject=<<<'HTML'
    project.dataset.clientSyncBound='1';
   }
  }
- function run(){removeSynthetic();addPanel();ensureSentStatus();syncClientFromProject();}
+ function run(){removeSynthetic();addPanel();ensureSentStatus();syncClientFromProject();bindMaterialTotals();updateMaterialTotals();}
  run();new MutationObserver(run).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
