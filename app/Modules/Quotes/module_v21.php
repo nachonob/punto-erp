@@ -42,7 +42,20 @@ $inject=<<<'HTML'
   if(![...s.options].some(o=>o.value==='enviado')){const o=document.createElement('option');o.value='enviado';o.textContent='Enviado';const approved=[...s.options].find(o=>o.value==='aprobado_inicial');if(approved)s.insertBefore(o,approved);else s.appendChild(o);}
   if(savedStatus)s.value=savedStatus;
  }
- function run(){removeSynthetic();addPanel();ensureSentStatus();}
+ function syncClientFromProject(){
+  const project=document.getElementById('project'),client=document.getElementById('client');
+  if(!project||!client)return;
+  const selected=project.selectedOptions[0],projectClient=selected?.dataset.client||'';
+  if(projectClient&&client.value!==projectClient){
+   client.value=projectClient;
+   client.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+  if(!project.dataset.clientSyncBound){
+   project.addEventListener('change',syncClientFromProject);
+   project.dataset.clientSyncBound='1';
+  }
+ }
+ function run(){removeSynthetic();addPanel();ensureSentStatus();syncClientFromProject();}
  run();new MutationObserver(run).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
