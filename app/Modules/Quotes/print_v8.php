@@ -11,9 +11,9 @@ try{
 }catch(Throwable $e){}
 ob_start();require __DIR__.'/print_v7.php';$html=ob_get_clean();
 if($discounts){
- $rows='';foreach($discounts as $d){$concept=trim((string)($d['description']??''));if($concept==='')$concept='Descuento';$detail=$d['discount_type']==='percentage'?' ('.rtrim(rtrim(number_format((float)$d['value'],2,'.',''),'0'),'.').'%)':'';$rows.='<div class="r discount-line"><span>'.htmlspecialchars($concept.$detail,ENT_QUOTES,'UTF-8').'</span><b>-US$ '.number_format((float)$d['_amount'],2,',','.').'</b></div>';}
+ $rows='';foreach($discounts as $d){$concept=trim((string)($d['description']??''));if($concept==='')$concept='Descuento';$detail=$d['discount_type']==='percentage'?' ('.rtrim(rtrim(number_format((float)$d['value'],2,'.',''),'0'),'.').'%)':'';$rows.='<div class="r discount-line"><span>'.htmlspecialchars($concept.$detail,ENT_QUOTES,'UTF-8').'</span><b>-US$ '.number_format(round((float)$d['_amount']),0,',','.').'</b></div>';}
  $final=max(0,$baseTotal-$discountTotal);
- $html=str_replace('<div class="r grand"><span>TOTAL</span><span>'.('US$ '.number_format($baseTotal,2,',','.')).'</span></div>',$rows.'<div class="r grand"><span>TOTAL</span><span>US$ '.number_format($final,2,',','.').'</span></div>',$html);
+ $html=str_replace('<div class="r grand"><span>TOTAL</span><span>'.('US$ '.number_format(round($baseTotal),0,',','.')).'</span></div>',$rows.'<div class="r grand"><span>TOTAL</span><span>US$ '.number_format(round($final),0,',','.').'</span></div>',$html);
  $html=str_replace('</head>','<style>.summary .discount-line{color:#b42318}.summary .discount-line b{color:#b42318}</style></head>',$html);
 }
 echo $html;
