@@ -28,6 +28,47 @@ function q12FollowupDate(string $from):string{
     return $date->format('Y-m-d');
 }
 
+if($a==='duplicate_quote'){
+    session_start();
+    $cfg=require $root.'/config.php';
+    date_default_timezone_set($cfg['timezone']??'America/Argentina/Buenos_Aires');
+    if(empty($_SESSION['user'])){header('Location:index.php');exit;}
+    if(($_SESSION['user']['role']??'')!=='admin'){http_response_code(403);exit('No autorizado.');}
+    if(!hash_equals($_SESSION['csrf']??'',$_POST['csrf']??'')){http_response_code(419);exit('Solicitud vencida.');}
+    $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    try{
+        $sourceId=(int)($_POST['quote_id']??0);
+        $responsibleUserId=(int)($_SESSION['user']['id']??0);
+        $userCheck=$db->prepare('SELECT id FROM users WHERE id=? AND active=1');$userCheck->execute([$responsibleUserId]);
+        if(!$userCheck->fetchColumn())throw new RuntimeException('La sesión pertenece a un usuario que ya no existe. Cerrá sesión e ingresá nuevamente.');
+        if(!(bool)$db->query("SHOW COLUMNS FROM quotes LIKE 'proposal_name'")->fetch())$db->exec("ALTER TABLE quotes ADD COLUMN proposal_name VARCHAR(150) NULL AFTER quote_category");
+        $sourceQuery=$db->prepare('SELECT * FROM quotes WHERE id=?');$sourceQuery->execute([$sourceId]);$source=$sourceQuery->fetch();
+        if(!$source)throw new RuntimeException('El presupuesto que querés duplicar no existe.');
+        $db->beginTransaction();
+        $versionQuery=$db->prepare('SELECT COALESCE(MAX(version_no),0)+1 FROM quotes WHERE project_id=? FOR UPDATE');$versionQuery->execute([(int)$source['project_id']]);$newVersion=(int)$versionQuery->fetchColumn();
+        $insert=$db->prepare('INSERT INTO quotes(project_id,version_no,quote_category,proposal_name,currency,quote_date,quote_families,quote_template_family,price_list_id,materials_amount,labor_amount,labor_description,subtotal,tax_mode,vat_rate,materials_tax_mode,materials_vat_rate,labor_tax_mode,labor_vat_rate,total,status,notes,responsible_user_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+        $insert->execute([(int)$source['project_id'],$newVersion,$source['quote_category'],$source['proposal_name']?:null,$source['currency'],date('Y-m-d'),$source['quote_families'],$source['quote_template_family'],$source['price_list_id'],$source['materials_amount'],$source['labor_amount'],$source['labor_description'],$source['subtotal'],$source['tax_mode'],$source['vat_rate'],$source['materials_tax_mode'],$source['materials_vat_rate'],$source['labor_tax_mode'],$source['labor_vat_rate'],$source['total'],'borrador',$source['notes'],$responsibleUserId]);
+        $newId=(int)$db->lastInsertId();
+        $copyItems=$db->prepare('INSERT INTO quote_items(quote_id,product_id,is_manual,category,brand,section_title,block_order,sku,description,unit,quantity,unit_price,price_list_id,subtotal,sort_order) SELECT ?,product_id,is_manual,category,brand,section_title,block_order,sku,description,unit,quantity,unit_price,price_list_id,subtotal,sort_order FROM quote_items WHERE quote_id=? ORDER BY id');
+        $copyItems->execute([$newId,$sourceId]);
+        $laborMap=[];$laborQuery=$db->prepare('SELECT * FROM quote_labor_items WHERE quote_id=? ORDER BY id');$laborQuery->execute([$sourceId]);
+        $insertLabor=$db->prepare('INSERT INTO quote_labor_items(quote_id,title,description,amount,tax_mode,vat_rate,block_order) VALUES(?,?,?,?,?,?,?)');
+        foreach($laborQuery as $labor){$insertLabor->execute([$newId,$labor['title'],$labor['description'],$labor['amount'],$labor['tax_mode'],$labor['vat_rate'],$labor['block_order']]);$laborMap[(int)$labor['id']]=(int)$db->lastInsertId();}
+        if((bool)$db->query("SHOW TABLES LIKE 'quote_discounts'")->fetch()){
+            $discountQuery=$db->prepare('SELECT * FROM quote_discounts WHERE quote_id=? ORDER BY sort_order,id');$discountQuery->execute([$sourceId]);
+            $insertDiscount=$db->prepare('INSERT INTO quote_discounts(quote_id,scope,item_type,item_id,discount_type,value,description,sort_order) VALUES(?,?,?,?,?,?,?,?)');
+            foreach($discountQuery as $discount){$itemId=(int)($discount['item_id']??0);if(($discount['item_type']??'')==='labor'&&$itemId)$itemId=$laborMap[$itemId]??0;$insertDiscount->execute([$newId,$discount['scope'],$discount['item_type'],$itemId?:null,$discount['discount_type'],$discount['value'],$discount['description'],$discount['sort_order']]);}
+        }
+        $db->commit();
+        $_SESSION['msg']='Presupuesto duplicado como versión '.$newVersion.'. Ya podés editar la copia.';
+        header('Location:index.php?a=edit_quote&id='.$newId);exit;
+    }catch(Throwable $ex){
+        if(isset($db)&&$db->inTransaction())$db->rollBack();
+        $_SESSION['msg']='No se pudo duplicar: '.$ex->getMessage();
+        header('Location:index.php?a=quotes');exit;
+    }
+}
+
 if(in_array($a,['save_quote','update_quote'],true)){
     session_start();
     $cfg=require $root.'/config.php';
