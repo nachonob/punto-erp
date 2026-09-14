@@ -13,6 +13,10 @@ if($a==='edit_quote'&&$qid>0){
  }catch(Throwable $e){}
 }
 if(in_array($a,['save_quote','update_quote'],true)){
+ // Los presupuestos comerciales trabajan con importes enteros.
+ foreach($_POST['items']??[] as $k=>$item)if(isset($item['unit_price']))$_POST['items'][$k]['unit_price']=(string)round((float)$item['unit_price']);
+ foreach($_POST['labor_blocks']??[] as $k=>$labor)if(isset($labor['amount']))$_POST['labor_blocks'][$k]['amount']=(string)round((float)$labor['amount']);
+ $_POST['concept_total_amount']=(string)round((float)($_POST['concept_total_amount']??0));
  $amount=max(0,(float)($_POST['concept_total_amount']??0));
  $label=trim((string)($_POST['concept_total_label']??'Materiales'))?:'Materiales';
  if($amount>0){
