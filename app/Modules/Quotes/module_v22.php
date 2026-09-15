@@ -7,11 +7,10 @@ $html=ob_get_clean();
 
 $inject=<<<'HTML'
 <style>
-.quote-drag-handle{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin-right:7px;border:1px solid #cbd1d7;border-radius:7px;background:#f4f6f8;color:#59636e;font-size:18px;font-weight:800;cursor:grab;touch-action:none;vertical-align:middle;user-select:none}
+.quote-drag-cell{width:44px;min-width:44px;max-width:44px;padding:8px 6px!important;text-align:center;vertical-align:middle}.quote-drag-head{width:44px;min-width:44px;max-width:44px;padding:0!important}.quote-drag-handle{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin:0;border:1px solid #cbd1d7;border-radius:7px;background:#f4f6f8;color:#59636e;font-size:18px;font-weight:800;cursor:grab;touch-action:none;vertical-align:middle;user-select:none}
 .quote-drag-handle:active{cursor:grabbing}
 .material-block tbody tr.quote-dragging{opacity:.42;background:#fff3e8}
 .material-block tbody.quote-drop-target{outline:2px dashed #ff6702;outline-offset:-2px}
-.quote-sort-help{display:inline-block;margin:5px 0 10px;color:#6e7781;font-size:13px}
 @media(max-width:700px){.quote-drag-handle{width:36px;height:36px;font-size:21px}}
 </style>
 <script>
@@ -54,9 +53,10 @@ $inject=<<<'HTML'
   row.draggable=true;
   const first=row.firstElementChild;
   if(!first)return;
+  const cell=document.createElement('td');cell.className='quote-drag-cell';
   const handle=document.createElement('button');
   handle.type='button';handle.className='quote-drag-handle';handle.title='Arrastrar para cambiar el orden';handle.setAttribute('aria-label','Mover producto');handle.textContent='↕';
-  first.insertBefore(handle,first.firstChild);
+  cell.appendChild(handle);row.insertBefore(cell,first);
 
   handle.addEventListener('mousedown',()=>row.dataset.dragArmed='1');
   document.addEventListener('mouseup',()=>delete row.dataset.dragArmed,{once:true});
@@ -83,6 +83,8 @@ $inject=<<<'HTML'
  }
 
  function enhanceBody(body){
+  const table=body.closest('table'),head=table?.querySelector('thead tr')||table?.querySelector('tr');
+  if(head&&!head.querySelector('.quote-drag-head')){const th=document.createElement('th');th.className='quote-drag-head';th.setAttribute('aria-label','Orden');head.insertBefore(th,head.firstElementChild);}
   if(!body.dataset.dropReady){
    body.dataset.dropReady='1';
    body.addEventListener('dragover',event=>{if(!desktopRow)return;event.preventDefault();body.classList.add('quote-drop-target');insertAtPoint(desktopRow,body,event.clientY);});
@@ -90,9 +92,6 @@ $inject=<<<'HTML'
    body.addEventListener('drop',event=>{if(!desktopRow)return;event.preventDefault();body.classList.remove('quote-drop-target');insertAtPoint(desktopRow,body,event.clientY);syncOrder();});
   }
   rows(body).forEach(enhanceRow);
-  const block=body.closest('.material-block');
-  const anchor=block?.querySelector('.block-body');
-  if(anchor&&!block.querySelector('.quote-sort-help')){const help=document.createElement('span');help.className='quote-sort-help';help.textContent='Usá ↕ para arrastrar y ordenar los productos.';anchor.insertBefore(help,anchor.firstChild);}
  }
 
  function enhance(){
