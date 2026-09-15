@@ -5,6 +5,14 @@ ob_start();
 require __DIR__.'/module_v22.php';
 $html=ob_get_clean();
 
+$categoryNames=[];
+try{
+ $categoryNames=$db->query("SELECT name FROM product_categories ORDER BY name")->fetchAll(PDO::FETCH_COLUMN);
+}catch(Throwable $e){
+ $categoryNames=[];
+}
+$categoryNamesJson=json_encode(array_values(array_unique(array_filter(array_map('strval',$categoryNames)))),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+
 $inject=<<<'HTML'
 <style>
 .quote-product-filters{margin:0 0 18px;padding:16px 18px;border:1px solid #dfe3e8;border-radius:12px;background:#f8fafb}
@@ -23,8 +31,15 @@ $inject=<<<'HTML'
  const blocks=document.getElementById('blocks');
  if(!blocks||document.getElementById('quote-product-filters'))return;
 
- const names=[...new Set(Object.values(products).map(p=>String(p.category||'Otros').trim()).filter(Boolean))]
-  .sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
+ const rubroSelect=document.querySelector('select[name="quote_category"]');
+ const rubroField=rubroSelect?.closest('p');
+ if(rubroField)rubroField.hidden=true;
+
+ const configuredNames=__CATEGORY_NAMES__;
+ const names=[...new Set([
+  ...configuredNames.map(name=>String(name||'').trim()),
+  ...Object.values(products).map(product=>String(product.category||'Otros').trim())
+ ].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
 
  const panel=document.createElement('section');
  panel.id='quote-product-filters';
@@ -74,6 +89,8 @@ $inject=<<<'HTML'
 })();
 </script>
 HTML;
+
+$inject=str_replace('__CATEGORY_NAMES__',$categoryNamesJson,$inject);
 
 if(str_contains($html,'</body>'))$html=str_replace('</body>',$inject.'</body>',$html);else$html.=$inject;
 echo $html;
