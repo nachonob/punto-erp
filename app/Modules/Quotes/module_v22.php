@@ -5,6 +5,19 @@ ob_start();
 require __DIR__.'/module_v21.php';
 $html=ob_get_clean();
 
+$defaultNotes=<<<'TEXT'
+FORMA DE PAGO:
+Anticipo por ingeniería: 10% del total del Proyecto, será asignado como crédito al realizar el pago de la mano de obra.
+100% de materiales mínimo un mes antes de ingresar en obra. 50% de Mano de obra al ingresar, el resto al terminar el trabajo.
+
+NO INCLUYE CABLEADO, NI CABLES (EN EL CASO DE NECESITARLO).
+NO INCLUYE PERFORACIONES EN LAS PUERTAS PARA MONTAJE DE CERRADURAS
+COTIZACIÓN: Dólar billete venta banco nación.
+Plazo de entrega 30-40 días según importación y aprobación de seguridad eléctrica
+TEXT;
+$defaultNotesJson=json_encode($defaultNotes,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+$isNewQuoteJson=json_encode($a==='new_quote');
+
 $inject=<<<'HTML'
 <style>
 .quote-drag-cell{width:44px;min-width:44px;max-width:44px;padding:8px 6px!important;text-align:center;vertical-align:middle}.quote-drag-head{width:44px;min-width:44px;max-width:44px;padding:0!important}.quote-drag-handle{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin:0;border:1px solid #cbd1d7;border-radius:7px;background:#f4f6f8;color:#59636e;font-size:18px;font-weight:800;cursor:grab;touch-action:none;vertical-align:middle;user-select:none}
@@ -15,6 +28,7 @@ $inject=<<<'HTML'
 </style>
 <script>
 (function(){
+ const defaultNotes=__DEFAULT_NOTES__,isNewQuote=__IS_NEW_QUOTE__;
  let desktopRow=null,pointerRow=null,lastPointerY=0;
 
  function bodyOf(row){return row&&row.closest('.material-block tbody');}
@@ -94,7 +108,14 @@ $inject=<<<'HTML'
   rows(body).forEach(enhanceRow);
  }
 
+ function applyDefaultNotes(){
+  if(!isNewQuote)return;
+  const notes=document.querySelector('textarea[name="notes"]');
+  if(notes&&!notes.value.trim())notes.value=defaultNotes;
+ }
+
  function enhance(){
+  applyDefaultNotes();
   document.querySelectorAll('.material-block tbody').forEach(enhanceBody);
  }
 
@@ -105,6 +126,7 @@ $inject=<<<'HTML'
 })();
 </script>
 HTML;
+$inject=str_replace(['__DEFAULT_NOTES__','__IS_NEW_QUOTE__'],[$defaultNotesJson,$isNewQuoteJson],$inject);
 
 if(str_contains($html,'</body>'))$html=str_replace('</body>',$inject.'</body>',$html);else$html.=$inject;
 echo $html;
