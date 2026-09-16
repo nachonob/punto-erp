@@ -36,10 +36,17 @@ $inject=<<<'HTML'
  if(rubroField)rubroField.hidden=true;
 
  const configuredNames=__CATEGORY_NAMES__;
+ const workingLifeSmart='LifeSmart / Domótica';
+ const duplicateLifeSmart='Domótica LifeSmart';
+ const productCategoryNames=Object.values(products).map(product=>String(product.category||'Otros').trim());
  const names=[...new Set([
   ...configuredNames.map(name=>String(name||'').trim()),
-  ...Object.values(products).map(product=>String(product.category||'Otros').trim())
- ].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
+  ...productCategoryNames
+ ].filter(name=>name&&name!==duplicateLifeSmart))]
+  .sort((a,b)=>{
+   const label=value=>value===workingLifeSmart?'Domótica LifeSmart':value;
+   return label(a).localeCompare(label(b),'es',{sensitivity:'base'});
+  });
 
  const panel=document.createElement('section');
  panel.id='quote-product-filters';
@@ -59,7 +66,7 @@ $inject=<<<'HTML'
  }
 
  const all=addChip('Todas','__all__',true);
- const categoryInputs=names.map(name=>addChip(name,name,false));
+ const categoryInputs=names.map(name=>addChip(name===workingLifeSmart?'Domótica LifeSmart':name,name,false));
 
  function selectedCategories(){
   if(all.checked)return [];
