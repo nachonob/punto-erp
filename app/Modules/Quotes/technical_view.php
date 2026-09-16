@@ -24,7 +24,7 @@ $family=trim((string)($q['quote_template_family']??''));if($family==='')$family=
  .toolbar,.note{display:none!important}
  .sheet{width:210mm;min-height:297mm;margin:0;background:#fff;padding:18mm 15mm 16mm;box-shadow:none}
  .meta{grid-template-columns:1fr 1fr 1fr}
- .head,.meta-box,.section,.equipment thead,.equipment tr,.labor,.foot{break-inside:avoid;page-break-inside:avoid}
+ .head,.meta-box,.section,.equipment thead,.equipment tr,.foot{break-inside:avoid;page-break-inside:avoid}
  .equipment thead{display:table-header-group}
  .equipment tr{break-inside:avoid;page-break-inside:avoid}
  .section h2{break-after:avoid;page-break-after:avoid}
