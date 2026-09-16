@@ -44,7 +44,12 @@ $inject=<<<'HTML'
  function ensureSentStatus(){
   const s=document.querySelector('select[name="status"]');if(!s)return;
   if(![...s.options].some(o=>o.value==='enviado')){const o=document.createElement('option');o.value='enviado';o.textContent='Enviado';const approved=[...s.options].find(o=>o.value==='aprobado_inicial');if(approved)s.insertBefore(o,approved);else s.appendChild(o);}
-  if(savedStatus)s.value=savedStatus;
+  // Aplicar el estado guardado una sola vez. Antes se restauraba en cada mutación
+  // del formulario y podía pisar la elección manual justo antes de guardar.
+  if(s.dataset.savedStatusApplied!=='1'){
+   if(savedStatus)s.value=savedStatus;
+   s.dataset.savedStatusApplied='1';
+  }
  }
  function updateMaterialTotals(){
   document.querySelectorAll('.material-block').forEach(block=>{
