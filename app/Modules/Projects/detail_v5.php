@@ -4,6 +4,27 @@ $root=dirname(__DIR__,3);$cfg=require $root.'/config.php';$projectId=(int)($_GET
 $financial=[];
 try{
  $db5=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+ $db5->exec("CREATE TABLE IF NOT EXISTS erp_data_migrations (
+  migration_key VARCHAR(190) PRIMARY KEY,
+  applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+ $db5->beginTransaction();
+ try{
+  $claim=$db5->prepare('INSERT IGNORE INTO erp_data_migrations(migration_key) VALUES(?)');
+  $claim->execute(['2026-09-17-normalize-initial-quote-versions-project-detail']);
+  if($claim->rowCount()===1){
+   $hasSeriesColumn=(bool)$db5->query("SHOW COLUMNS FROM quotes LIKE 'quote_series_key'")->fetch();
+   if($hasSeriesColumn){
+    $series=$db5->query("SELECT quote_series_key FROM quotes WHERE quote_series_key IS NOT NULL AND quote_series_key<>'' GROUP BY quote_series_key HAVING COUNT(*)=1")->fetchAll(PDO::FETCH_COLUMN);
+    $normalize=$db5->prepare('UPDATE quotes SET version_no=1 WHERE quote_series_key=? AND version_no<>1');
+    foreach($series as $seriesKey)$normalize->execute([(string)$seriesKey]);
+   }
+  }
+  $db5->commit();
+ }catch(Throwable $migrationError){
+  if($db5->inTransaction())$db5->rollBack();
+  throw $migrationError;
+ }
  $s=$db5->prepare("SELECT * FROM quotes WHERE project_id=? AND status IN ('aprobado_inicial','final') ORDER BY version_no DESC,id DESC");$s->execute([$projectId]);$approved=$s->fetchAll();
  $current=[];foreach($approved as $q){$key=($q['quote_category']??'general').'|'.($q['currency']??'USD');if(!isset($current[$key]))$current[$key]=$q;}
  foreach(['USD','ARS'] as $cur)$financial[$cur]=['total'=>0.0,'materials'=>0.0,'materials_input'=>0.0,'materials_vat'=>0.0,'labor'=>0.0,'labor_input'=>0.0,'labor_vat'=>0.0,'paid'=>0.0,'due'=>0.0,'approved_ids'=>[]];
