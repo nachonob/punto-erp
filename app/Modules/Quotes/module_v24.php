@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+if(session_status()!==PHP_SESSION_ACTIVE)session_start();
 $root=dirname(__DIR__,3);
 $cfg=require $root.'/config.php';
 $db24=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[
