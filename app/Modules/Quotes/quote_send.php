@@ -19,6 +19,9 @@ $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=u
  PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
  PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC
 ]);
+if(!(bool)$db->query("SHOW COLUMNS FROM quotes LIKE 'locked_at'")->fetch())$db->exec("ALTER TABLE quotes ADD COLUMN locked_at DATETIME NULL AFTER sent_at");
+$statusType=(string)$db->query("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='quotes' AND COLUMN_NAME='status'")->fetchColumn();
+if(!str_contains($statusType,'aprobado_definitivo'))$db->exec("ALTER TABLE quotes MODIFY status ENUM('borrador','enviado','aprobado_inicial','aprobado_definitivo','final','rechazado') NOT NULL DEFAULT 'borrador'");
 $s=$db->prepare('SELECT id,status FROM quotes WHERE id=?');
 $s->execute([$id]);
 $quote=$s->fetch();
