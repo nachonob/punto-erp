@@ -1,10 +1,11 @@
 <?php
 declare(strict_types=1);
 
-$id=(int)($_GET['id']??0);$csrf=(string)($_SESSION['csrf']??'');
+$id=(int)($_GET['id']??0);
 ob_start();
 require __DIR__.'/print_v11.php';
 $html=ob_get_clean();
+$csrf=(string)($_SESSION['csrf']??'');
 
 $html=preg_replace_callback('/href="(mailto:[^"]+)"/',function(array $match)use($id,$csrf):string{
     $target=htmlspecialchars_decode($match[1],ENT_QUOTES);
