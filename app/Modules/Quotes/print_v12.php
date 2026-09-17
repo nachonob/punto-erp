@@ -10,7 +10,7 @@ $html=preg_replace_callback('/href="(mailto:[^"]+)"/',function(array $match)use(
     $target=htmlspecialchars_decode($match[1],ENT_QUOTES);
     return 'href="?a=send_quote&amp;id='.$id.'&amp;channel=email&amp;csrf='.rawurlencode($csrf).'&amp;target='.rawurlencode(base64_encode($target)).'"';
 },$html)??$html;
-$html=preg_replace_callback('/href="(https:\/\/wa\.me\/[^"]+)"/',function(array $match)use($id):string{
+$html=preg_replace_callback('/href="(https:\/\/wa\.me\/[^"]+)"/',function(array $match)use($id,$csrf):string{
     $target=htmlspecialchars_decode($match[1],ENT_QUOTES);
     return 'href="?a=send_quote&amp;id='.$id.'&amp;channel=whatsapp&amp;csrf='.rawurlencode($csrf).'&amp;target='.rawurlencode(base64_encode($target)).'"';
 },$html)??$html;
