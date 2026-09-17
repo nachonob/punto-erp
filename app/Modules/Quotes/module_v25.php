@@ -33,9 +33,7 @@ $inject=<<<HTML
  const status=document.querySelector('select[name="status"]');
  if(status){
   [...status.options].forEach(option=>{
-   if(option.value==='enviado')option.remove();
-   else if(option.value==='aprobado_inicial')option.textContent='Aceptado inicial';
-   else if(option.value==='final'){option.value='aprobado_definitivo';option.textContent='Aceptado definitivo';}
+   if(['enviado','aprobado_inicial','aprobado_definitivo','final'].includes(option.value))option.remove();
    else if(option.value==='rechazado')option.textContent='Rechazado';
   });
   if(isNew)status.value='borrador';
