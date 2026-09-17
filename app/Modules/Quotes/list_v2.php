@@ -12,6 +12,24 @@ $oldUnique=$db->query("SELECT INDEX_NAME FROM information_schema.STATISTICS WHER
 if($oldUnique)$db->exec('ALTER TABLE quotes DROP INDEX `'.str_replace('`','``',(string)$oldUnique).'`');
 $hasSeriesIndex=(int)$db->query("SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='quotes' AND INDEX_NAME='uq_quote_series_version'")->fetchColumn();
 if(!$hasSeriesIndex)$db->exec("ALTER TABLE quotes MODIFY quote_series_key CHAR(32) NOT NULL, ADD UNIQUE KEY uq_quote_series_version (quote_series_key,version_no)");
+$db->exec("CREATE TABLE IF NOT EXISTS erp_data_migrations (
+ migration_key VARCHAR(190) PRIMARY KEY,
+ applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+$db->beginTransaction();
+try{
+ $claim=$db->prepare('INSERT IGNORE INTO erp_data_migrations(migration_key) VALUES(?)');
+ $claim->execute(['2026-09-17-normalize-initial-quote-versions']);
+ if($claim->rowCount()===1){
+  $series=$db->query("SELECT quote_series_key FROM quotes WHERE quote_series_key<>'' GROUP BY quote_series_key HAVING COUNT(*)=1")->fetchAll(PDO::FETCH_COLUMN);
+  $normalize=$db->prepare('UPDATE quotes SET version_no=1 WHERE quote_series_key=? AND version_no<>1');
+  foreach($series as $seriesKey)$normalize->execute([(string)$seriesKey]);
+ }
+ $db->commit();
+}catch(Throwable $migrationError){
+ if($db->inTransaction())$db->rollBack();
+ throw $migrationError;
+}
 if(empty($_SESSION['user'])){header('Location:index.php');exit;}
 require_once $root.'/app/Core/UnifiedSidebar.php';
 function e($v):string{return htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');}
