@@ -26,7 +26,7 @@ $q=$s->fetch();
 if(!$q){http_response_code(404);exit('Presupuesto inexistente.');}
 if(!in_array($q['status'],['enviado','aprobado_inicial','aprobado_definitivo','final'],true)&&$status!=='rechazado'){
     $_SESSION['msg']='Primero enviá el presupuesto al cliente.';
-    header('Location:index.php?a=quotes');exit;
+    header('Location:index.php?a=quote_state_edit&id='.$id);exit;
 }
 
 function qsReplace(PDO $db,array $quote,int $newChargeId,array $types):void{
@@ -77,5 +77,5 @@ try{
 }catch(Throwable $ignored){}
 $db->commit();
 $_SESSION['msg']=$status==='aprobado_inicial'?'Presupuesto marcado como Aceptado inicial.':($status==='aprobado_definitivo'?'Presupuesto marcado como Aceptado definitivo.':'Presupuesto rechazado.');
-header('Location:index.php?a=quotes');
+header('Location:index.php?a=quote_state_edit&id='.$id);
 exit;

@@ -91,6 +91,11 @@ if($a==='send_quote'){
  if(!$manage){http_response_code(403);exit('Tu perfil no permite enviar presupuestos.');}
  require __DIR__.'/app/Modules/Quotes/quote_send.php';exit;
 }
+if($a==='quote_state_edit'){
+ [,,$manage]=recoveredQuoteRouteAccess();
+ if(!$manage){http_response_code(403);exit('Tu perfil no permite cambiar el estado del presupuesto.');}
+ require __DIR__.'/app/Modules/Quotes/quote_state_edit.php';exit;
+}
 if($a==='quote_status'){
  [,,$manage]=recoveredQuoteRouteAccess();
  if(!$manage){http_response_code(403);exit('Tu perfil no permite cambiar el estado del presupuesto.');}

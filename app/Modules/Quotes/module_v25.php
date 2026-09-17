@@ -12,8 +12,8 @@ if($a==='edit_quote'){
         $status=(string)($s->fetchColumn()?:'');
         if($status!==''&&$status!=='borrador'){
             if(session_status()!==PHP_SESSION_ACTIVE)session_start();
-            $_SESSION['msg']='Este presupuesto ya fue enviado y está bloqueado. Usá Duplicar para crear una nueva versión editable.';
-            header('Location:index.php?a=quote_view&id='.(int)($_GET['id']??0));
+            $_SESSION['msg']='Los materiales de este presupuesto están bloqueados porque ya fue enviado. Podés verlo y cambiar su estado.';
+            header('Location:index.php?a=quote_state_edit&id='.(int)($_GET['id']??0));
             exit;
         }
     }catch(Throwable $e){}
