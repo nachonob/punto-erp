@@ -50,8 +50,18 @@ if(in_array($a,['save_quote','update_quote'],true)){
     if(session_status()===PHP_SESSION_ACTIVE)session_write_close();
 }
 
+$currentRubro='';
+if($a==='edit_quote'){
+    $quoteId=(int)($_GET['id']??0);
+    if($quoteId>0){
+        $current=$db24->prepare('SELECT quote_category FROM quotes WHERE id=?');
+        $current->execute([$quoteId]);
+        $currentRubro=trim((string)($current->fetchColumn()?:''));
+    }
+}
 $rubros=$db24->query('SELECT name FROM quote_rubros WHERE active=1 ORDER BY name')->fetchAll(PDO::FETCH_COLUMN);
 $rubrosJson=json_encode(array_values(array_map('strval',$rubros)),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+$currentRubroJson=json_encode($currentRubro,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
 
 ob_start();
 require __DIR__.'/module_v23.php';
@@ -77,7 +87,8 @@ $inject=<<<'HTML'
  familyInputs.forEach(input=>hiddenFamilies.appendChild(input));
  form?.appendChild(hiddenFamilies);
 
- const currentValue=String(rubro.value||'').trim();
+ const serverValue=__CURRENT_RUBRO__;
+ const currentValue=String(serverValue||rubro.value||'').trim();
  const rubros=__RUBROS__;
  const aliases={general:'General',domotica:'Domótica',redes:'Redes',camaras:'Cámaras',alarma:'Alarma',audio:'Audio',electricidad:'Electricidad'};
  const normalized=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
@@ -113,6 +124,15 @@ $inject=<<<'HTML'
  familyBlock.append(label,rubro,help);
  originalField?.remove();
 
+ const sidebarNav=document.querySelector('.sidebar-nav');
+ if(sidebarNav&&!sidebarNav.querySelector('a[href="?a=quote_rubros"]')){
+  const link=document.createElement('a');
+  link.href='?a=quote_rubros';
+  link.innerHTML='<span class="nav-icon">◫</span>Rubros de presupuestos';
+  const quotesLink=sidebarNav.querySelector('a[href="?a=quotes"]');
+  if(quotesLink)quotesLink.insertAdjacentElement('afterend',link);else sidebarNav.appendChild(link);
+ }
+
  const template=document.querySelector('select[name="quote_template_family"]');
  const templateLabel=template?.closest('p')?.querySelector('label');
  if(templateLabel)templateLabel.textContent='Plantilla del PDF';
@@ -128,6 +148,6 @@ $inject=<<<'HTML'
 </script>
 HTML;
 
-$inject=str_replace('__RUBROS__',$rubrosJson,$inject);
+$inject=str_replace(['__RUBROS__','__CURRENT_RUBRO__'],[$rubrosJson,$currentRubroJson],$inject);
 if(str_contains($html,'</body>'))$html=str_replace('</body>',$inject.'</body>',$html);else$html.=$inject;
 echo $html;
