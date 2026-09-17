@@ -57,7 +57,7 @@ $inject=<<<'HTML'
    block.querySelectorAll('tbody tr').forEach(row=>{
     const manual=row.dataset.manual==='1',productId=row.dataset.product||row.querySelector('.product-id')?.value||'';
     if(!manual&&!productId)return;
-    const quantity=Number(row.querySelector('.qty')?.value||0),price=Number(row.querySelector('.unit-price')?.value||0),discount=Math.max(0,Math.min(100,Number(row.querySelector('.item-discount')?.value||0));
+    const quantity=Number(row.querySelector('.qty')?.value||0),price=Number(row.querySelector('.unit-price')?.value||0),discount=Math.max(0,Math.min(100,Number(row.querySelector('.item-discount')?.value||0)));
     total+=quantity*price*(1-discount/100);
    });
    const head=block.querySelector('.block-head');if(!head)return;
