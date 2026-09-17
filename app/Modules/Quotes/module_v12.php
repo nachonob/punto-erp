@@ -28,6 +28,18 @@ function q12FollowupDate(string $from):string{
     return $date->format('Y-m-d');
 }
 
+function q12EnsureVersioning(PDO $db):void{
+    if(!(bool)$db->query("SHOW COLUMNS FROM quotes LIKE 'quote_series_key'")->fetch())$db->exec("ALTER TABLE quotes ADD COLUMN quote_series_key CHAR(32) NULL AFTER project_id");
+    if(!(bool)$db->query("SHOW COLUMNS FROM quotes LIKE 'locked_at'")->fetch())$db->exec("ALTER TABLE quotes ADD COLUMN locked_at DATETIME NULL AFTER sent_at");
+    $db->exec("UPDATE quotes SET quote_series_key=LOWER(LEFT(SHA2(CONCAT(project_id,'|',quote_category,'|',COALESCE(NULLIF(TRIM(proposal_name),''),CONCAT('presupuesto-',id))),256),32)) WHERE quote_series_key IS NULL OR quote_series_key=''");
+    $statusType=(string)$db->query("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='quotes' AND COLUMN_NAME='status'")->fetchColumn();
+    if(!str_contains($statusType,'aprobado_definitivo'))$db->exec("ALTER TABLE quotes MODIFY status ENUM('borrador','enviado','aprobado_inicial','aprobado_definitivo','final','rechazado') NOT NULL DEFAULT 'borrador'");
+    $old=$db->query("SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='quotes' AND NON_UNIQUE=0 AND INDEX_NAME<>'PRIMARY' GROUP BY INDEX_NAME HAVING GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX)='project_id,version_no' LIMIT 1")->fetchColumn();
+    if($old)$db->exec('ALTER TABLE quotes DROP INDEX `'.str_replace('`','``',(string)$old).'`');
+    $hasSeriesIndex=$db->query("SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='quotes' AND INDEX_NAME='uq_quote_series_version'")->fetchColumn();
+    if(!(int)$hasSeriesIndex)$db->exec("ALTER TABLE quotes MODIFY quote_series_key CHAR(32) NOT NULL, ADD UNIQUE KEY uq_quote_series_version (quote_series_key,version_no)");
+}
+
 if($a==='duplicate_quote'){
     session_start();
     $cfg=require $root.'/config.php';
@@ -35,7 +47,7 @@ if($a==='duplicate_quote'){
     if(empty($_SESSION['user'])){header('Location:index.php');exit;}
     if(($_SESSION['user']['role']??'')!=='admin'){http_response_code(403);exit('No autorizado.');}
     if(!hash_equals($_SESSION['csrf']??'',$_POST['csrf']??'')){http_response_code(419);exit('Solicitud vencida.');}
-    $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);q12EnsureVersioning($db);
     try{
         $sourceId=(int)($_POST['quote_id']??0);
         $responsibleUserId=(int)($_SESSION['user']['id']??0);
@@ -76,7 +88,7 @@ if(in_array($a,['save_quote','update_quote'],true)){
     if(empty($_SESSION['user'])){header('Location:index.php');exit;}
     if(($_SESSION['user']['role']??'')!=='admin'){http_response_code(403);exit('No autorizado.');}
     if(!hash_equals($_SESSION['csrf']??'',$_POST['csrf']??'')){http_response_code(419);exit('Solicitud vencida.');}
-    $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);q12EnsureVersioning($db);
     try{
         $responsibleUserId=(int)($_SESSION['user']['id']??0);
         $userCheck=$db->prepare('SELECT id FROM users WHERE id=? AND active=1');
@@ -143,7 +155,7 @@ if(in_array($a,['save_quote','update_quote'],true)){
 $manualRows=[];$currentCategory='';$nextVersions=[];
 try{
     $cfg=require $root.'/config.php';
-    $db12=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    $db12=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);q12EnsureVersioning($db12);
     foreach($db12->query('SELECT project_id,COALESCE(MAX(version_no),0)+1 next_version FROM quotes GROUP BY project_id') as $r)$nextVersions[(int)$r['project_id']]=(int)$r['next_version'];
     if($a==='edit_quote'){$qid=(int)($_GET['id']??0);$s=$db12->prepare('SELECT quote_category FROM quotes WHERE id=?');$s->execute([$qid]);$currentCategory=(string)($s->fetchColumn()?:'');$s=$db12->prepare('SELECT block_order,section_title,sku,description,unit,quantity,unit_price,sort_order FROM quote_items WHERE quote_id=? AND (is_manual=1 OR product_id IS NULL) ORDER BY block_order,sort_order,id');$s->execute([$qid]);$manualRows=$s->fetchAll();}
 }catch(Throwable $e){}
