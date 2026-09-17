@@ -1,24 +1,59 @@
 <?php
 declare(strict_types=1);
 
+$root=dirname(__DIR__,3);
+$cfg=require $root.'/config.php';
+$db24=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[
+    PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC
+]);
+
+$db24->exec("CREATE TABLE IF NOT EXISTS quote_rubros (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL UNIQUE,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+$column=$db24->query("SELECT DATA_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='quotes' AND COLUMN_NAME='quote_category'")->fetchColumn();
+if($column==='enum'){
+    $db24->exec("ALTER TABLE quotes MODIFY quote_category VARCHAR(150) NOT NULL DEFAULT 'General'");
+}
+$db24->exec("INSERT IGNORE INTO quote_rubros(name,active) VALUES
+    ('General',1),('Domótica',1),('Redes',1),('Cámaras',1),('Alarma',1),('Audio',1),('Electricidad',1)");
+$db24->exec("UPDATE quotes SET quote_category=CASE quote_category
+    WHEN 'general' THEN 'General'
+    WHEN 'domotica' THEN 'Domótica'
+    WHEN 'redes' THEN 'Redes'
+    WHEN 'camaras' THEN 'Cámaras'
+    WHEN 'alarma' THEN 'Alarma'
+    WHEN 'audio' THEN 'Audio'
+    WHEN 'electricidad' THEN 'Electricidad'
+    ELSE quote_category END
+    WHERE quote_category IN ('general','domotica','redes','camaras','alarma','audio','electricidad')");
+
+$a=$_GET['a']??'new_quote';
+if(in_array($a,['save_quote','update_quote'],true)){
+    $requestedRubro=trim((string)($_POST['quote_category']??''));
+    $check=$db24->prepare('SELECT name FROM quote_rubros WHERE name=? AND active=1');
+    $check->execute([$requestedRubro]);
+    $validRubro=(string)($check->fetchColumn()?:'');
+    if($validRubro===''){
+        $_SESSION['msg']='No se pudo guardar: seleccioná un rubro válido.';
+        $target=$a==='update_quote'?'?a=edit_quote&id='.(int)($_POST['quote_id']??0):'?a=new_quote';
+        header('Location: '.$target);
+        exit;
+    }
+    $_POST['quote_category']=$validRubro;
+}
+
+$rubros=$db24->query('SELECT name FROM quote_rubros WHERE active=1 ORDER BY name')->fetchAll(PDO::FETCH_COLUMN);
+$rubrosJson=json_encode(array_values(array_map('strval',$rubros)),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+
 ob_start();
 require __DIR__.'/module_v23.php';
 $html=ob_get_clean();
-
-$categoryNames=[];
-try{
-    $categoryNames=$db->query("SELECT name FROM product_categories WHERE active=1 ORDER BY name")->fetchAll(PDO::FETCH_COLUMN);
-}catch(Throwable $e){
-    try{
-        $categoryNames=$db->query("SELECT name FROM product_categories ORDER BY name")->fetchAll(PDO::FETCH_COLUMN);
-    }catch(Throwable $ignored){
-        $categoryNames=[];
-    }
-}
-$categoryNamesJson=json_encode(
-    array_values(array_unique(array_filter(array_map('strval',$categoryNames)))),
-    JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES
-);
 
 $inject=<<<'HTML'
 <style>
@@ -41,37 +76,28 @@ $inject=<<<'HTML'
  form?.appendChild(hiddenFamilies);
 
  const currentValue=String(rubro.value||'').trim();
- const categoryNames=__CATEGORY_NAMES__;
- const aliases={
-  domotica:'LifeSmart / Domótica',
-  redes:'Redes',
-  camaras:'Cámaras',
-  alarma:'Alarma',
-  audio:'Audio',
-  electricidad:'Electricidad',
-  general:'General'
- };
+ const rubros=__RUBROS__;
+ const aliases={general:'General',domotica:'Domótica',redes:'Redes',camaras:'Cámaras',alarma:'Alarma',audio:'Audio',electricidad:'Electricidad'};
  const normalized=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
- const unique=[...new Set(categoryNames.map(name=>String(name||'').trim()).filter(Boolean))];
  const desired=aliases[normalized(currentValue)]||currentValue;
- let selected=unique.find(name=>normalized(name)===normalized(desired))||'';
- if(!selected&&currentValue){
-  unique.push(desired);
-  selected=desired;
- }
- unique.sort((a,b)=>{
-  const label=value=>value==='LifeSmart / Domótica'?'Domótica LifeSmart':value;
-  return label(a).localeCompare(label(b),'es',{sensitivity:'base'});
- });
+ let selected=rubros.find(name=>normalized(name)===normalized(desired))||'';
+ if(!selected&&currentValue)selected=desired;
 
  rubro.innerHTML='';
- unique.forEach(name=>{
+ rubros.forEach(name=>{
   const option=document.createElement('option');
   option.value=name;
-  option.textContent=name==='LifeSmart / Domótica'?'Domótica LifeSmart':name;
+  option.textContent=name;
   option.selected=name===selected;
   rubro.appendChild(option);
  });
+ if(selected&&![...rubro.options].some(option=>option.value===selected)){
+  const historical=document.createElement('option');
+  historical.value=selected;
+  historical.textContent=selected+' (histórico)';
+  historical.selected=true;
+  rubro.appendChild(historical);
+ }
 
  familyBlock.innerHTML='';
  const label=document.createElement('label');
@@ -81,7 +107,7 @@ $inject=<<<'HTML'
  rubro.required=true;
  const help=document.createElement('small');
  help.className='quote-rubro-help';
- help.textContent='Se obtiene de las categorías del catálogo de productos.';
+ help.innerHTML='Clasificación comercial del presupuesto. <a href="?a=quote_rubros">Administrar rubros</a>.';
  familyBlock.append(label,rubro,help);
  originalField?.remove();
 
@@ -100,6 +126,6 @@ $inject=<<<'HTML'
 </script>
 HTML;
 
-$inject=str_replace('__CATEGORY_NAMES__',$categoryNamesJson,$inject);
+$inject=str_replace('__RUBROS__',$rubrosJson,$inject);
 if(str_contains($html,'</body>'))$html=str_replace('</body>',$inject.'</body>',$html);else$html.=$inject;
 echo $html;
