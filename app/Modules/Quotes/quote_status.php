@@ -16,6 +16,10 @@ $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=u
  PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
  PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC
 ]);
+if(!(bool)$db->query("SHOW COLUMNS FROM quotes LIKE 'quote_series_key'")->fetch())$db->exec("ALTER TABLE quotes ADD COLUMN quote_series_key CHAR(32) NULL AFTER project_id");
+$db->exec("UPDATE quotes SET quote_series_key=LOWER(LEFT(SHA2(CONCAT(project_id,'|',quote_category,'|',COALESCE(NULLIF(TRIM(proposal_name),''),CONCAT('presupuesto-',id))),256),32)) WHERE quote_series_key IS NULL OR quote_series_key=''");
+$statusType=(string)$db->query("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='quotes' AND COLUMN_NAME='status'")->fetchColumn();
+if(!str_contains($statusType,'aprobado_definitivo'))$db->exec("ALTER TABLE quotes MODIFY status ENUM('borrador','enviado','aprobado_inicial','aprobado_definitivo','final','rechazado') NOT NULL DEFAULT 'borrador'");
 $s=$db->prepare('SELECT q.*,p.engineering_pct FROM quotes q JOIN projects p ON p.id=q.project_id WHERE q.id=?');
 $s->execute([$id]);
 $q=$s->fetch();
