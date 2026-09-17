@@ -128,9 +128,12 @@ $inject=<<<'HTML'
  if(sidebarNav&&!sidebarNav.querySelector('a[href="?a=quote_rubros"]')){
   const link=document.createElement('a');
   link.href='?a=quote_rubros';
-  link.innerHTML='<span class="nav-icon">◫</span>Rubros de presupuestos';
+  link.textContent='Rubros';
+  const submenu=document.createElement('div');
+  submenu.className='nav-submenu';
+  submenu.appendChild(link);
   const quotesLink=sidebarNav.querySelector('a[href="?a=quotes"]');
-  if(quotesLink)quotesLink.insertAdjacentElement('afterend',link);else sidebarNav.appendChild(link);
+  if(quotesLink)quotesLink.insertAdjacentElement('afterend',submenu);else sidebarNav.appendChild(submenu);
  }
 
  const template=document.querySelector('select[name="quote_template_family"]');
