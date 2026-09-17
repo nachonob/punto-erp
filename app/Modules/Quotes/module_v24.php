@@ -1,7 +1,6 @@
 <?php
 declare(strict_types=1);
 
-if(session_status()!==PHP_SESSION_ACTIVE)session_start();
 $root=dirname(__DIR__,3);
 $cfg=require $root.'/config.php';
 $db24=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[
@@ -36,6 +35,7 @@ $db24->exec("UPDATE quotes SET quote_category=CASE quote_category
 
 $a=$_GET['a']??'new_quote';
 if(in_array($a,['save_quote','update_quote'],true)){
+    if(session_status()!==PHP_SESSION_ACTIVE)session_start();
     $requestedRubro=trim((string)($_POST['quote_category']??''));
     $check=$db24->prepare('SELECT name FROM quote_rubros WHERE name=? AND active=1');
     $check->execute([$requestedRubro]);
@@ -47,6 +47,7 @@ if(in_array($a,['save_quote','update_quote'],true)){
         exit;
     }
     $_POST['quote_category']=$validRubro;
+    if(session_status()===PHP_SESSION_ACTIVE)session_write_close();
 }
 
 $rubros=$db24->query('SELECT name FROM quote_rubros WHERE active=1 ORDER BY name')->fetchAll(PDO::FETCH_COLUMN);
