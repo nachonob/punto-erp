@@ -28,6 +28,18 @@ function q12FollowupDate(string $from):string{
     return $date->format('Y-m-d');
 }
 
+function q12EnsureVersioning(PDO $db):void{
+    if(!(bool)$db->query("SHOW COLUMNS FROM quotes LIKE 'quote_series_key'")->fetch())$db->exec("ALTER TABLE quotes ADD COLUMN quote_series_key CHAR(32) NULL AFTER project_id");
+    if(!(bool)$db->query("SHOW COLUMNS FROM quotes LIKE 'locked_at'")->fetch())$db->exec("ALTER TABLE quotes ADD COLUMN locked_at DATETIME NULL AFTER sent_at");
+    $db->exec("UPDATE quotes SET quote_series_key=LOWER(LEFT(SHA2(CONCAT(project_id,'|',quote_category,'|',COALESCE(NULLIF(TRIM(proposal_name),''),CONCAT('presupuesto-',id))),256),32)) WHERE quote_series_key IS NULL OR quote_series_key=''");
+    $statusType=(string)$db->query("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='quotes' AND COLUMN_NAME='status'")->fetchColumn();
+    if(!str_contains($statusType,'aprobado_definitivo'))$db->exec("ALTER TABLE quotes MODIFY status ENUM('borrador','enviado','aprobado_inicial','aprobado_definitivo','final','rechazado') NOT NULL DEFAULT 'borrador'");
+    $old=$db->query("SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='quotes' AND NON_UNIQUE=0 AND INDEX_NAME<>'PRIMARY' GROUP BY INDEX_NAME HAVING GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX)='project_id,version_no' LIMIT 1")->fetchColumn();
+    if($old)$db->exec('ALTER TABLE quotes DROP INDEX `'.str_replace('`','``',(string)$old).'`');
+    $hasSeriesIndex=$db->query("SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='quotes' AND INDEX_NAME='uq_quote_series_version'")->fetchColumn();
+    if(!(int)$hasSeriesIndex)$db->exec("ALTER TABLE quotes MODIFY quote_series_key CHAR(32) NOT NULL, ADD UNIQUE KEY uq_quote_series_version (quote_series_key,version_no)");
+}
+
 if($a==='duplicate_quote'){
     session_start();
     $cfg=require $root.'/config.php';
@@ -35,7 +47,7 @@ if($a==='duplicate_quote'){
     if(empty($_SESSION['user'])){header('Location:index.php');exit;}
     if(($_SESSION['user']['role']??'')!=='admin'){http_response_code(403);exit('No autorizado.');}
     if(!hash_equals($_SESSION['csrf']??'',$_POST['csrf']??'')){http_response_code(419);exit('Solicitud vencida.');}
-    $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);q12EnsureVersioning($db);
     try{
         $sourceId=(int)($_POST['quote_id']??0);
         $responsibleUserId=(int)($_SESSION['user']['id']??0);
@@ -45,9 +57,9 @@ if($a==='duplicate_quote'){
         $sourceQuery=$db->prepare('SELECT * FROM quotes WHERE id=?');$sourceQuery->execute([$sourceId]);$source=$sourceQuery->fetch();
         if(!$source)throw new RuntimeException('El presupuesto que querés duplicar no existe.');
         $db->beginTransaction();
-        $versionQuery=$db->prepare('SELECT COALESCE(MAX(version_no),0)+1 FROM quotes WHERE project_id=? FOR UPDATE');$versionQuery->execute([(int)$source['project_id']]);$newVersion=(int)$versionQuery->fetchColumn();
-        $insert=$db->prepare('INSERT INTO quotes(project_id,version_no,quote_category,proposal_name,currency,quote_date,quote_families,quote_template_family,price_list_id,materials_amount,labor_amount,labor_description,subtotal,tax_mode,vat_rate,materials_tax_mode,materials_vat_rate,labor_tax_mode,labor_vat_rate,total,status,notes,responsible_user_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-        $insert->execute([(int)$source['project_id'],$newVersion,$source['quote_category'],$source['proposal_name']?:null,$source['currency'],date('Y-m-d'),$source['quote_families'],$source['quote_template_family'],$source['price_list_id'],$source['materials_amount'],$source['labor_amount'],$source['labor_description'],$source['subtotal'],$source['tax_mode'],$source['vat_rate'],$source['materials_tax_mode'],$source['materials_vat_rate'],$source['labor_tax_mode'],$source['labor_vat_rate'],$source['total'],'borrador',$source['notes'],$responsibleUserId]);
+        $seriesKey=(string)($source['quote_series_key']??'');if($seriesKey==='')$seriesKey=bin2hex(random_bytes(16));$versionQuery=$db->prepare('SELECT COALESCE(MAX(version_no),0)+1 FROM quotes WHERE quote_series_key=? FOR UPDATE');$versionQuery->execute([$seriesKey]);$newVersion=(int)$versionQuery->fetchColumn();
+        $insert=$db->prepare('INSERT INTO quotes(project_id,quote_series_key,version_no,quote_category,proposal_name,currency,quote_date,quote_families,quote_template_family,price_list_id,materials_amount,labor_amount,labor_description,subtotal,tax_mode,vat_rate,materials_tax_mode,materials_vat_rate,labor_tax_mode,labor_vat_rate,total,status,notes,responsible_user_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+        $insert->execute([(int)$source['project_id'],$seriesKey,$newVersion,$source['quote_category'],$source['proposal_name']?:null,$source['currency'],date('Y-m-d'),$source['quote_families'],$source['quote_template_family'],$source['price_list_id'],$source['materials_amount'],$source['labor_amount'],$source['labor_description'],$source['subtotal'],$source['tax_mode'],$source['vat_rate'],$source['materials_tax_mode'],$source['materials_vat_rate'],$source['labor_tax_mode'],$source['labor_vat_rate'],$source['total'],'borrador',$source['notes'],$responsibleUserId]);
         $newId=(int)$db->lastInsertId();
         $copyItems=$db->prepare('INSERT INTO quote_items(quote_id,product_id,is_manual,category,brand,section_title,block_order,sku,description,unit,quantity,unit_price,price_list_id,subtotal,sort_order) SELECT ?,product_id,is_manual,category,brand,section_title,block_order,sku,description,unit,quantity,unit_price,price_list_id,subtotal,sort_order FROM quote_items WHERE quote_id=? ORDER BY id');
         $copyItems->execute([$newId,$sourceId]);
@@ -76,7 +88,7 @@ if(in_array($a,['save_quote','update_quote'],true)){
     if(empty($_SESSION['user'])){header('Location:index.php');exit;}
     if(($_SESSION['user']['role']??'')!=='admin'){http_response_code(403);exit('No autorizado.');}
     if(!hash_equals($_SESSION['csrf']??'',$_POST['csrf']??'')){http_response_code(419);exit('Solicitud vencida.');}
-    $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);q12EnsureVersioning($db);
     try{
         $responsibleUserId=(int)($_SESSION['user']['id']??0);
         $userCheck=$db->prepare('SELECT id FROM users WHERE id=? AND active=1');
@@ -113,17 +125,22 @@ if(in_array($a,['save_quote','update_quote'],true)){
         $laborBlocks=[];$labor=0;$labTotal=0;
         foreach($_POST['labor_blocks']??[] as $r){$amount=max(0,(float)($r['amount']??0));$title=trim((string)($r['title']??'Mano de obra'))?:'Mano de obra';$desc=trim((string)($r['description']??''))?:'Configuración, montaje y diseño de escenas';$mode=in_array(($r['tax_mode']??'sin_iva'),['sin_iva','mas_iva','iva_incluido'],true)?$r['tax_mode']:'sin_iva';$vat=(float)($r['vat_rate']??21);$order=(int)($r['block_order']??0);if($amount<=0)continue;$labor+=$amount;$labTotal+=($mode==='mas_iva'?round($amount*(1+$vat/100),2):$amount);$laborBlocks[]=[$title,$desc,$amount,$mode,$vat,$order];}
         $matMode=in_array(($_POST['materials_tax_mode']??'mas_iva'),['sin_iva','mas_iva','iva_incluido'],true)?$_POST['materials_tax_mode']:'mas_iva';$matVat=(float)($_POST['materials_vat_rate']??21);$matTotal=$matMode==='mas_iva'?round($materials*(1+$matVat/100),2):$materials;$total=round($matTotal+$labTotal,2);
-        $version=max(1,(int)($_POST['version_no']??1));
-        if($a==='save_quote'){$v=$db->prepare('SELECT COALESCE(MAX(version_no),0) FROM quotes WHERE project_id=?');$v->execute([$pid]);$maxv=(int)$v->fetchColumn();if($version<=$maxv)$version=$maxv+1;}
-        else{$v=$db->prepare('SELECT id FROM quotes WHERE project_id=? AND version_no=? AND id<>? LIMIT 1');$v->execute([$pid,$version,$qid]);if($v->fetchColumn())throw new Exception('Ya existe esa versión para el proyecto. Elegí otra versión.');}
-        $date=$_POST['quote_date']??date('Y-m-d');$status=$_POST['status']??'borrador';$category=$_POST['quote_category']??'general';$proposalName=mb_substr(trim((string)($_POST['proposal_name']??'')),0,150);$notes=trim((string)($_POST['notes']??''));$laborDesc=count($laborBlocks)===1?$laborBlocks[0][1]:(count($laborBlocks)>1?'Mano de obra por sectores':'');
+        $version=1;$seriesKey='';
+        if($a==='save_quote'){$seriesKey=bin2hex(random_bytes(16));}
+        else{
+            $existing=$db->prepare('SELECT quote_series_key,status,version_no FROM quotes WHERE id=?');$existing->execute([$qid]);$currentQuote=$existing->fetch();
+            if(!$currentQuote)throw new Exception('Presupuesto inválido.');
+            if(($currentQuote['status']??'borrador')!=='borrador')throw new Exception('El presupuesto ya fue enviado y está bloqueado. Duplicalo para generar una nueva versión.');
+            $seriesKey=(string)$currentQuote['quote_series_key'];$version=(int)$currentQuote['version_no'];
+        }
+        $date=$_POST['quote_date']??date('Y-m-d');$status=$_POST['status']??'borrador';$category=$_POST['quote_category']??'general';$proposalName=mb_substr(trim((string)($_POST['proposal_name']??'')),0,150);if($proposalName==='')throw new Exception('Ingresá el nombre del presupuesto.');$notes=trim((string)($_POST['notes']??''));$laborDesc=count($laborBlocks)===1?$laborBlocks[0][1]:(count($laborBlocks)>1?'Mano de obra por sectores':'');
         $db->beginTransaction();
         if($a==='update_quote'){
             if(!$qid)throw new Exception('Presupuesto inválido.');
-            $db->prepare('UPDATE quotes SET project_id=?,version_no=?,quote_category=?,proposal_name=?,currency="USD",quote_date=?,quote_families=?,quote_template_family=?,price_list_id=?,materials_amount=?,labor_amount=?,labor_description=?,subtotal=?,tax_mode="sin_iva",vat_rate=21,materials_tax_mode=?,materials_vat_rate=?,labor_tax_mode="sin_iva",labor_vat_rate=21,total=?,status=?,notes=? WHERE id=?')->execute([$pid,$version,$category,$proposalName!==''?$proposalName:null,$date,implode(',',$families),$template,$listId,$materials,$labor,$laborDesc,$materials+$labor,$matMode,$matVat,$total,$status,$notes,$qid]);
+            $db->prepare('UPDATE quotes SET project_id=?,quote_series_key=?,version_no=?,quote_category=?,proposal_name=?,currency="USD",quote_date=?,quote_families=?,quote_template_family=?,price_list_id=?,materials_amount=?,labor_amount=?,labor_description=?,subtotal=?,tax_mode="sin_iva",vat_rate=21,materials_tax_mode=?,materials_vat_rate=?,labor_tax_mode="sin_iva",labor_vat_rate=21,total=?,status=?,notes=? WHERE id=?')->execute([$pid,$seriesKey,$version,$category,$proposalName!==''?$proposalName:null,$date,implode(',',$families),$template,$listId,$materials,$labor,$laborDesc,$materials+$labor,$matMode,$matVat,$total,$status,$notes,$qid]);
             $db->prepare('DELETE FROM quote_items WHERE quote_id=?')->execute([$qid]);$db->prepare('DELETE FROM quote_labor_items WHERE quote_id=?')->execute([$qid]);
         }else{
-            $db->prepare('INSERT INTO quotes(project_id,version_no,quote_category,proposal_name,currency,quote_date,quote_families,quote_template_family,price_list_id,materials_amount,labor_amount,labor_description,subtotal,tax_mode,vat_rate,materials_tax_mode,materials_vat_rate,labor_tax_mode,labor_vat_rate,total,status,notes,responsible_user_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')->execute([$pid,$version,$category,$proposalName!==''?$proposalName:null,'USD',$date,implode(',',$families),$template,$listId,$materials,$labor,$laborDesc,$materials+$labor,'sin_iva',21,$matMode,$matVat,'sin_iva',21,$total,$status,$notes,$responsibleUserId]);$qid=(int)$db->lastInsertId();
+            $db->prepare('INSERT INTO quotes(project_id,quote_series_key,version_no,quote_category,proposal_name,currency,quote_date,quote_families,quote_template_family,price_list_id,materials_amount,labor_amount,labor_description,subtotal,tax_mode,vat_rate,materials_tax_mode,materials_vat_rate,labor_tax_mode,labor_vat_rate,total,status,notes,responsible_user_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')->execute([$pid,$seriesKey,$version,$category,$proposalName!==''?$proposalName:null,'USD',$date,implode(',',$families),$template,$listId,$materials,$labor,$laborDesc,$materials+$labor,'sin_iva',21,$matMode,$matVat,'sin_iva',21,$total,$status,$notes,$responsibleUserId]);$qid=(int)$db->lastInsertId();
         }
         $ins=$db->prepare('INSERT INTO quote_items(quote_id,product_id,is_manual,category,brand,section_title,block_order,sku,description,unit,quantity,unit_price,price_list_id,subtotal,sort_order) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');foreach($items as $r)$ins->execute(array_merge([$qid],$r));
         $li=$db->prepare('INSERT INTO quote_labor_items(quote_id,title,description,amount,tax_mode,vat_rate,block_order) VALUES(?,?,?,?,?,?,?)');foreach($laborBlocks as $r)$li->execute(array_merge([$qid],$r));
@@ -131,11 +148,11 @@ if(in_array($a,['save_quote','update_quote'],true)){
             $next=q12FollowupDate($date);
             $db->prepare('UPDATE quotes SET sent_at=COALESCE(sent_at,?),responsible_user_id=COALESCE(responsible_user_id,?),next_followup_date=COALESCE(next_followup_date,?),reminder_sent_at=NULL,followup_closed_at=NULL WHERE id=?')->execute([$date,$responsibleUserId,$next,$qid]);
             $db->prepare("INSERT INTO quote_followup_history(quote_id,user_id,event_type,next_contact_date,notes) SELECT ?,?,'enviado',?,'Presupuesto marcado como enviado' WHERE NOT EXISTS (SELECT 1 FROM quote_followup_history WHERE quote_id=? AND event_type='enviado' AND DATE(event_date)=?)")->execute([$qid,$responsibleUserId,$next,$qid,$date]);
-        }elseif(in_array($status,['aprobado_inicial','final','rechazado'],true)){
+        }elseif(in_array($status,['aprobado_inicial','aprobado_definitivo','final','rechazado'],true)){
             $db->prepare('UPDATE quotes SET next_followup_date=NULL,followup_closed_at=COALESCE(followup_closed_at,NOW()) WHERE id=?')->execute([$qid]);
         }
         if($status==='aprobado_inicial'){$pct=(float)$project['engineering_pct'];$amt=round($total*$pct/100,2);$db->prepare("INSERT INTO charges(project_id,quote_id,charge_date,type,currency,description,amount) VALUES(?,?,?,'ingenieria','USD',?,?)")->execute([$pid,$qid,$date,'Adelanto de ingeniería '.$pct.'% · v'.$version,$amt]);$eng=(int)$db->lastInsertId();q12ReplaceCharge($db,$pid,$eng,['ingenieria']);$db->prepare("UPDATE projects SET status='aprobado' WHERE id=?")->execute([$pid]);}
-        if($status==='final'){$db->prepare("INSERT INTO charges(project_id,quote_id,charge_date,type,currency,description,amount) VALUES(?,?,?,'materiales','USD',?,?)")->execute([$pid,$qid,$date,'Materiales · presupuesto final v'.$version,$matTotal]);$mat=(int)$db->lastInsertId();q12ReplaceCharge($db,$pid,$mat,['materiales']);if($labTotal>0){$db->prepare("INSERT INTO charges(project_id,quote_id,charge_date,type,currency,description,amount) VALUES(?,?,?,'mano_obra','USD',?,?)")->execute([$pid,$qid,$date,'Mano de obra · presupuesto final v'.$version,$labTotal]);$labId=(int)$db->lastInsertId();q12ReplaceCharge($db,$pid,$labId,['ingenieria','mano_obra']);}$db->prepare("UPDATE projects SET status='en_obra' WHERE id=?")->execute([$pid]);}
+        if(in_array($status,['aprobado_definitivo','final'],true)){$db->prepare("INSERT INTO charges(project_id,quote_id,charge_date,type,currency,description,amount) VALUES(?,?,?,'materiales','USD',?,?)")->execute([$pid,$qid,$date,'Materiales · presupuesto final v'.$version,$matTotal]);$mat=(int)$db->lastInsertId();q12ReplaceCharge($db,$pid,$mat,['materiales']);if($labTotal>0){$db->prepare("INSERT INTO charges(project_id,quote_id,charge_date,type,currency,description,amount) VALUES(?,?,?,'mano_obra','USD',?,?)")->execute([$pid,$qid,$date,'Mano de obra · presupuesto final v'.$version,$labTotal]);$labId=(int)$db->lastInsertId();q12ReplaceCharge($db,$pid,$labId,['ingenieria','mano_obra']);}$db->prepare("UPDATE projects SET status='en_obra' WHERE id=?")->execute([$pid]);}
         $db->commit();$_SESSION['msg']=$a==='update_quote'?'Presupuesto actualizado.':'Presupuesto creado.';header('Location:index.php?a=quote_view&id='.$qid);exit;
     }catch(Throwable $ex){if(isset($db)&&$db->inTransaction())$db->rollBack();$_SESSION['msg']='No se pudo guardar: '.$ex->getMessage();header('Location:index.php?a='.($a==='update_quote'?'edit_quote&id='.$qid:'new_quote'));exit;}
 }
@@ -143,7 +160,7 @@ if(in_array($a,['save_quote','update_quote'],true)){
 $manualRows=[];$currentCategory='';$nextVersions=[];
 try{
     $cfg=require $root.'/config.php';
-    $db12=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    $db12=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);q12EnsureVersioning($db12);
     foreach($db12->query('SELECT project_id,COALESCE(MAX(version_no),0)+1 next_version FROM quotes GROUP BY project_id') as $r)$nextVersions[(int)$r['project_id']]=(int)$r['next_version'];
     if($a==='edit_quote'){$qid=(int)($_GET['id']??0);$s=$db12->prepare('SELECT quote_category FROM quotes WHERE id=?');$s->execute([$qid]);$currentCategory=(string)($s->fetchColumn()?:'');$s=$db12->prepare('SELECT block_order,section_title,sku,description,unit,quantity,unit_price,sort_order FROM quote_items WHERE quote_id=? AND (is_manual=1 OR product_id IS NULL) ORDER BY block_order,sort_order,id');$s->execute([$qid]);$manualRows=$s->fetchAll();}
 }catch(Throwable $e){}

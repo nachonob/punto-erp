@@ -79,12 +79,22 @@ if(in_array($a,['quote_view','quote_print'],true)){
  [$logged,$view,$manage]=recoveredQuoteRouteAccess();
  if($logged&&!$view){http_response_code(403);exit('Tu perfil no permite acceder a presupuestos.');}
  if($logged&&$view&&!$manage){require __DIR__.'/app/Modules/Quotes/technical_view.php';exit;}
- require __DIR__.'/app/Modules/Quotes/print_v11.php';exit;
+ require __DIR__.'/app/Modules/Quotes/print_v12.php';exit;
 }
 if(in_array($a,['new_quote','save_quote','edit_quote','update_quote','duplicate_quote'],true)){
  [,,$manage]=recoveredQuoteRouteAccess();
  if(!$manage){http_response_code(403);exit('Tu perfil es de solo lectura y no permite crear ni editar presupuestos.');}
- require __DIR__.'/app/Modules/Quotes/module_v24.php';exit;
+ require __DIR__.'/app/Modules/Quotes/module_v25.php';exit;
+}
+if($a==='send_quote'){
+ [,,$manage]=recoveredQuoteRouteAccess();
+ if(!$manage){http_response_code(403);exit('Tu perfil no permite enviar presupuestos.');}
+ require __DIR__.'/app/Modules/Quotes/quote_send.php';exit;
+}
+if($a==='quote_status'){
+ [,,$manage]=recoveredQuoteRouteAccess();
+ if(!$manage){http_response_code(403);exit('Tu perfil no permite cambiar el estado del presupuesto.');}
+ require __DIR__.'/app/Modules/Quotes/quote_status.php';exit;
 }
 if(in_array($a,['quote_followup','save_quote_followup'],true)){
  require __DIR__.'/app/Modules/Quotes/module.php';exit;
