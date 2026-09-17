@@ -3,6 +3,16 @@ declare(strict_types=1);
 
 $root=dirname(__DIR__,3);
 $a=$_GET['a']??'new_quote';
+
+/*
+ * Un presupuesto creado desde "Nuevo presupuesto" siempre inicia una serie
+ * independiente en v1. Las versiones siguientes se generan únicamente al
+ * duplicar un presupuesto existente.
+ */
+if($a==='save_quote'){
+    $_POST['version_no']='1';
+}
+
 if($a==='edit_quote'){
     try{
         $cfg=require $root.'/config.php';
@@ -22,6 +32,31 @@ if($a==='edit_quote'){
 ob_start();
 require __DIR__.'/module_v24.php';
 $html=ob_get_clean();
+
+/*
+ * Corregimos también el HTML generado por los módulos anteriores. Así el
+ * formulario ya llega al navegador mostrando v1, aun antes de ejecutar JS.
+ */
+if($a==='new_quote'){
+    $html=preg_replace_callback(
+        '/<input\b[^>]*\bname\s*=\s*(["\'])version_no\1[^>]*>/i',
+        static function(array $match):string{
+            $tag=$match[0];
+            if(preg_match('/\bvalue\s*=\s*(["\'])[^"\']*\1/i',$tag)){
+                $tag=preg_replace('/\bvalue\s*=\s*(["\'])[^"\']*\1/i','value="1"',$tag,1)??$tag;
+            }else{
+                $tag=preg_replace('/\s*\/?>$/',' value="1">',$tag)??$tag;
+            }
+            if(!preg_match('/\breadonly\b/i',$tag)){
+                $tag=preg_replace('/\s*\/?>$/',' readonly>',$tag)??$tag;
+            }
+            return $tag;
+        },
+        $html,
+        1
+    )??$html;
+}
+
 $isNewJson=json_encode($a==='new_quote');
 
 $inject=<<<HTML
@@ -29,7 +64,7 @@ $inject=<<<HTML
 (function(){
  const isNew=$isNewJson;
  const version=document.querySelector('input[name="version_no"]');
- if(version){if(isNew)version.value='1';version.readOnly=true;version.title='La versión se administra automáticamente';}
+ if(version){if(isNew){version.value='1';version.setAttribute('value','1');}version.readOnly=true;version.title='La versión se administra automáticamente';}
  const status=document.querySelector('select[name="status"]');
  if(status){
   [...status.options].forEach(option=>{
