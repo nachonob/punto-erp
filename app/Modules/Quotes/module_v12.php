@@ -133,7 +133,7 @@ if(in_array($a,['save_quote','update_quote'],true)){
             if(($currentQuote['status']??'borrador')!=='borrador')throw new Exception('El presupuesto ya fue enviado y está bloqueado. Duplicalo para generar una nueva versión.');
             $seriesKey=(string)$currentQuote['quote_series_key'];$version=(int)$currentQuote['version_no'];
         }
-        $date=$_POST['quote_date']??date('Y-m-d');$status=$_POST['status']??'borrador';$category=$_POST['quote_category']??'general';$proposalName=mb_substr(trim((string)($_POST['proposal_name']??'')),0,150);$notes=trim((string)($_POST['notes']??''));$laborDesc=count($laborBlocks)===1?$laborBlocks[0][1]:(count($laborBlocks)>1?'Mano de obra por sectores':'');
+        $date=$_POST['quote_date']??date('Y-m-d');$status=$_POST['status']??'borrador';$category=$_POST['quote_category']??'general';$proposalName=mb_substr(trim((string)($_POST['proposal_name']??'')),0,150);if($proposalName==='')throw new Exception('Ingresá el nombre del presupuesto.');$notes=trim((string)($_POST['notes']??''));$laborDesc=count($laborBlocks)===1?$laborBlocks[0][1]:(count($laborBlocks)>1?'Mano de obra por sectores':'');
         $db->beginTransaction();
         if($a==='update_quote'){
             if(!$qid)throw new Exception('Presupuesto inválido.');
