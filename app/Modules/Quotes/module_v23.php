@@ -79,6 +79,26 @@ $inject=<<<'HTML'
 
  const all=addChip('Todas','__all__',true);
  const categoryInputs=names.map(name=>addChip(name,name,false));
+ const storageKey='punto-erp.quote-product-categories';
+
+ function restoreSelection(){
+  try{
+   const saved=JSON.parse(localStorage.getItem(storageKey)||'[]');
+   if(!Array.isArray(saved)||!saved.length)return;
+   const normalizedSaved=[...new Set(saved.map(normalizedCategory))];
+   categoryInputs.forEach(input=>input.checked=normalizedSaved.includes(input.value));
+   all.checked=!categoryInputs.some(input=>input.checked);
+  }catch(error){
+   all.checked=true;
+  }
+ }
+
+ function saveSelection(){
+  try{
+   const selected=all.checked?[]:categoryInputs.filter(input=>input.checked).map(input=>input.value);
+   localStorage.setItem(storageKey,JSON.stringify(selected));
+  }catch(error){}
+ }
 
  function selectedCategories(){
   if(all.checked)return [];
@@ -96,14 +116,17 @@ $inject=<<<'HTML'
 
  all.addEventListener('change',()=>{
   if(all.checked)categoryInputs.forEach(input=>input.checked=false);
+  saveSelection();
   document.querySelectorAll('.suggestions').forEach(list=>list.style.display='none');
  });
  categoryInputs.forEach(input=>input.addEventListener('change',()=>{
   if(input.checked)all.checked=false;
   if(!categoryInputs.some(item=>item.checked))all.checked=true;
+  saveSelection();
   document.querySelectorAll('.suggestions').forEach(list=>list.style.display='none');
  }));
 
+ restoreSelection();
  blocks.insertAdjacentElement('beforebegin',panel);
 })();
 </script>
