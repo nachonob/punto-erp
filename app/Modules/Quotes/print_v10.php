@@ -11,7 +11,7 @@ ob_start();require __DIR__.'/print_v9.php';$html=ob_get_clean();
 if($baseUrl!==''){
  $link=htmlspecialchars($baseUrl,ENT_QUOTES,'UTF-8');
  // Reescribe el texto ya codificado de ambos enlaces agregando el acceso seguro al presupuesto.
- $html=preg_replace_callback('/href="(mailto:[^"]+)"/',function($m)use($baseUrl){$u=htmlspecialchars_decode($m[1],ENT_QUOTES);$sep=str_contains($u,'?')?'&':'?';if(str_contains($u,'body=')){$parts=explode('body=',$u,2);$body=rawurldecode($parts[1]);$u=$parts[0].'body='.rawurlencode($body."\n\nVer / descargar presupuesto: ".$baseUrl);}return 'href="'.htmlspecialchars($u,ENT_QUOTES,'UTF-8').'"';},$html)??$html;
- $html=preg_replace_callback('/href="(https:\/\/wa\.me\/[^"]+)"/',function($m)use($baseUrl){$u=htmlspecialchars_decode($m[1],ENT_QUOTES);if(str_contains($u,'?text=')){$parts=explode('?text=',$u,2);$text=rawurldecode($parts[1]);$u=$parts[0].'?text='.rawurlencode($text."\n\nVer / descargar presupuesto: ".$baseUrl);}return 'href="'.htmlspecialchars($u,ENT_QUOTES,'UTF-8').'"';},$html)??$html;
+ $html=preg_replace_callback('/href="(mailto:[^"]+)"/',function($m)use($baseUrl){$u=htmlspecialchars_decode($m[1],ENT_QUOTES);$sep=str_contains($u,'?')?'&':'?';if(str_contains($u,'body=')){$parts=explode('body=',$u,2);$body=rawurldecode($parts[1]);$u=$parts[0].'body='.rawurlencode($body."\n\nVer, descargar o aceptar presupuesto: ".$baseUrl);}return 'href="'.htmlspecialchars($u,ENT_QUOTES,'UTF-8').'"';},$html)??$html;
+ $html=preg_replace_callback('/href="(https:\/\/wa\.me\/[^"]+)"/',function($m)use($baseUrl){$u=htmlspecialchars_decode($m[1],ENT_QUOTES);if(str_contains($u,'?text=')){$parts=explode('?text=',$u,2);$text=rawurldecode($parts[1]);$u=$parts[0].'?text='.rawurlencode($text."\n\nVer, descargar o aceptar presupuesto: ".$baseUrl);}return 'href="'.htmlspecialchars($u,ENT_QUOTES,'UTF-8').'"';},$html)??$html;
 }
 echo $html;
