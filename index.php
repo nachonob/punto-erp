@@ -1,6 +1,12 @@
 <?php
 declare(strict_types=1);
 $a=$_GET['a']??'';
+
+// Una versión anterior de la vista pública podía dejar este usuario técnico en la sesión.
+// Se elimina para que nunca sea interpretado como un usuario real sin permisos.
+if(session_status()!==PHP_SESSION_ACTIVE)session_start();
+if(($_SESSION['user']['role']??'')==='public_quote')unset($_SESSION['user']);
+session_write_close();
 if($a==='sales_quotes'){$a='quotes';$_GET['a']='quotes';}
 
 function recoveredQuoteRouteAccess():array{
