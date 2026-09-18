@@ -77,5 +77,6 @@ try{
 }catch(Throwable $ignored){}
 $db->commit();
 $_SESSION['msg']=$status==='aprobado_inicial'?'Presupuesto marcado como Aceptado inicial.':($status==='aprobado_definitivo'?'Presupuesto marcado como Aceptado definitivo.':'Presupuesto rechazado.');
+if($status==='aprobado_inicial'&&!empty($_POST['redirect_payment'])){header('Location:index.php?a=new_payment&project_id='.(int)$q['project_id']);exit;}
 header('Location:index.php?a=quote_state_edit&id='.$id);
 exit;
