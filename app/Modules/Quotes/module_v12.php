@@ -109,14 +109,18 @@ if(in_array($a,['save_quote','update_quote'],true)){
             $sub=round($qty*$unit,2);$materials+=$sub;
             $items[]=[$productId,0,$p['category'],q12Brand((string)$p['category']),$section,$order,$p['sku'],$p['description'],$p['unit'],$qty,$unit,$listId,$sub,$sort++];
         }
-        if(!$items)throw new Exception('Agregá al menos un producto o un ítem manual.');
         $laborBlocks=[];$labor=0;$labTotal=0;
         foreach($_POST['labor_blocks']??[] as $r){$amount=max(0,(float)($r['amount']??0));$title=trim((string)($r['title']??'Mano de obra'))?:'Mano de obra';$desc=trim((string)($r['description']??''))?:'Configuración, montaje y diseño de escenas';$mode=in_array(($r['tax_mode']??'sin_iva'),['sin_iva','mas_iva','iva_incluido'],true)?$r['tax_mode']:'sin_iva';$vat=(float)($r['vat_rate']??21);$order=(int)($r['block_order']??0);if($amount<=0)continue;$labor+=$amount;$labTotal+=($mode==='mas_iva'?round($amount*(1+$vat/100),2):$amount);$laborBlocks[]=[$title,$desc,$amount,$mode,$vat,$order];}
         $matMode=in_array(($_POST['materials_tax_mode']??'mas_iva'),['sin_iva','mas_iva','iva_incluido'],true)?$_POST['materials_tax_mode']:'mas_iva';$matVat=(float)($_POST['materials_vat_rate']??21);$matTotal=$matMode==='mas_iva'?round($materials*(1+$matVat/100),2):$materials;$total=round($matTotal+$labTotal,2);
         $version=max(1,(int)($_POST['version_no']??1));
         if($a==='save_quote'){$v=$db->prepare('SELECT COALESCE(MAX(version_no),0) FROM quotes WHERE project_id=?');$v->execute([$pid]);$maxv=(int)$v->fetchColumn();if($version<=$maxv)$version=$maxv+1;}
         else{$v=$db->prepare('SELECT id FROM quotes WHERE project_id=? AND version_no=? AND id<>? LIMIT 1');$v->execute([$pid,$version,$qid]);if($v->fetchColumn())throw new Exception('Ya existe esa versión para el proyecto. Elegí otra versión.');}
-        $date=$_POST['quote_date']??date('Y-m-d');$status=$_POST['status']??'borrador';$category=$_POST['quote_category']??'general';$proposalName=mb_substr(trim((string)($_POST['proposal_name']??'')),0,150);$notes=trim((string)($_POST['notes']??''));$laborDesc=count($laborBlocks)===1?$laborBlocks[0][1]:(count($laborBlocks)>1?'Mano de obra por sectores':'');
+        $date=$_POST['quote_date']??date('Y-m-d');$status=$_POST['status']??'borrador';
+        // Permitir guardar la cabecera antes de cargar productos o mano de obra.
+        // Un presupuesto vacío siempre queda como borrador y no dispara seguimiento ni cargos.
+        $emptyDraft=!$items&&!$laborBlocks;
+        if($emptyDraft)$status='borrador';
+        $category=$_POST['quote_category']??'general';$proposalName=mb_substr(trim((string)($_POST['proposal_name']??'')),0,150);$notes=trim((string)($_POST['notes']??''));$laborDesc=count($laborBlocks)===1?$laborBlocks[0][1]:(count($laborBlocks)>1?'Mano de obra por sectores':'');
         $db->beginTransaction();
         if($a==='update_quote'){
             if(!$qid)throw new Exception('Presupuesto inválido.');
@@ -136,7 +140,10 @@ if(in_array($a,['save_quote','update_quote'],true)){
         }
         if($status==='aprobado_inicial'){$pct=(float)$project['engineering_pct'];$amt=round($total*$pct/100,2);$db->prepare("INSERT INTO charges(project_id,quote_id,charge_date,type,currency,description,amount) VALUES(?,?,?,'ingenieria','USD',?,?)")->execute([$pid,$qid,$date,'Adelanto de ingeniería '.$pct.'% · v'.$version,$amt]);$eng=(int)$db->lastInsertId();q12ReplaceCharge($db,$pid,$eng,['ingenieria']);$db->prepare("UPDATE projects SET status='aprobado' WHERE id=?")->execute([$pid]);}
         if($status==='final'){$db->prepare("INSERT INTO charges(project_id,quote_id,charge_date,type,currency,description,amount) VALUES(?,?,?,'materiales','USD',?,?)")->execute([$pid,$qid,$date,'Materiales · presupuesto final v'.$version,$matTotal]);$mat=(int)$db->lastInsertId();q12ReplaceCharge($db,$pid,$mat,['materiales']);if($labTotal>0){$db->prepare("INSERT INTO charges(project_id,quote_id,charge_date,type,currency,description,amount) VALUES(?,?,?,'mano_obra','USD',?,?)")->execute([$pid,$qid,$date,'Mano de obra · presupuesto final v'.$version,$labTotal]);$labId=(int)$db->lastInsertId();q12ReplaceCharge($db,$pid,$labId,['ingenieria','mano_obra']);}$db->prepare("UPDATE projects SET status='en_obra' WHERE id=?")->execute([$pid]);}
-        $db->commit();$_SESSION['msg']=$a==='update_quote'?'Presupuesto actualizado.':'Presupuesto creado.';header('Location:index.php?a=quote_view&id='.$qid);exit;
+        $db->commit();
+        if($emptyDraft)$_SESSION['msg']='Borrador guardado. Podés agregar productos y mano de obra cuando quieras.';
+        else $_SESSION['msg']=$a==='update_quote'?'Presupuesto actualizado.':'Presupuesto creado.';
+        header('Location:index.php?a=edit_quote&id='.$qid);exit;
     }catch(Throwable $ex){if(isset($db)&&$db->inTransaction())$db->rollBack();$_SESSION['msg']='No se pudo guardar: '.$ex->getMessage();header('Location:index.php?a='.($a==='update_quote'?'edit_quote&id='.$qid:'new_quote'));exit;}
 }
 
