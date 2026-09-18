@@ -2,8 +2,6 @@
 declare(strict_types=1);
 $id=(int)($_GET['id']??0);
 if($id<1 || (int)($_SESSION['public_quote_access_id']??0)!==$id){http_response_code(403);exit('Acceso no autorizado.');}
-$_SESSION['user']=['role'=>'public_quote'];
-
 $root=dirname(__DIR__,3);$family='';$hasPrologue=false;$hasPayment=false;$projectNumber='presupuesto';$versionNo=1;$quote=[];$acceptance=null;$acceptError=null;
 try{
  $cfg=require $root.'/config.php';
@@ -36,7 +34,11 @@ try{
  if($acceptance){$quote['status']='aprobado_inicial';}
 }catch(Throwable $e){$acceptError='No se pudo preparar la aceptación del presupuesto.';}
 
-ob_start();require __DIR__.'/print_v11.php';$html=ob_get_clean();
+$hadAuthenticatedUser=array_key_exists('user',$_SESSION);$authenticatedUser=$_SESSION['user']??null;
+if(!$hadAuthenticatedUser)$_SESSION['user']=['role'=>'public_quote'];
+ob_start();
+try{require __DIR__.'/print_v11.php';$html=ob_get_clean();}
+finally{if($hadAuthenticatedUser)$_SESSION['user']=$authenticatedUser;else unset($_SESSION['user']);}
 $html=preg_replace('/<a class="light" href="\?a=quotes">.*?<\/a>/s','',$html)??$html;
 $html=preg_replace('/<a class="dark" href="\?a=edit_quote&id=\d+">Editar<\/a>/','',$html)??$html;
 $html=preg_replace('/<button id="mailQuoteBtn"[^>]*>Enviar por mail<\/button>/','',$html)??$html;
