@@ -50,8 +50,8 @@ $db->prepare('UPDATE quotes SET status=?,locked_at=COALESCE(locked_at,NOW()),nex
 
 if($status==='aprobado_inicial'){
  $amount=round((float)$q['total']*(float)$q['engineering_pct']/100,2);
- $db->prepare("INSERT INTO charges(project_id,quote_id,charge_date,type,currency,description,amount) VALUES(?,?,?,'ingenieria','USD',?,?)")
-    ->execute([(int)$q['project_id'],$id,$date,'Adelanto de ingeniería '.(float)$q['engineering_pct'].'% · '.($q['proposal_name']?:'Presupuesto').' · v'.$q['version_no'],$amount]);
+ $db->prepare("INSERT INTO charges(project_id,quote_id,charge_date,type,currency,description,amount) VALUES(?,?,?,'ingenieria',?,?,?)")
+    ->execute([(int)$q['project_id'],$id,$date,(string)($q['currency']??'USD'),'Adelanto de ingeniería '.(float)$q['engineering_pct'].'% · '.($q['proposal_name']?:'Presupuesto').' · v'.$q['version_no'],$amount]);
  $chargeId=(int)$db->lastInsertId();
  qsReplace($db,$q,$chargeId,['ingenieria']);
  $db->prepare("UPDATE projects SET status='aprobado' WHERE id=?")->execute([(int)$q['project_id']]);
@@ -60,12 +60,12 @@ if($status==='aprobado_inicial'){
  $laborFactor=($q['labor_tax_mode']??'sin_iva')==='mas_iva'?1+(float)$q['labor_vat_rate']/100:1;
  $materials=round((float)$q['materials_amount']*$matFactor,2);
  $labor=round((float)$q['labor_amount']*$laborFactor,2);
- $db->prepare("INSERT INTO charges(project_id,quote_id,charge_date,type,currency,description,amount) VALUES(?,?,?,'materiales','USD',?,?)")
-    ->execute([(int)$q['project_id'],$id,$date,'Materiales · '.($q['proposal_name']?:'Presupuesto').' · v'.$q['version_no'],$materials]);
+ $db->prepare("INSERT INTO charges(project_id,quote_id,charge_date,type,currency,description,amount) VALUES(?,?,?,'materiales',?,?,?)")
+    ->execute([(int)$q['project_id'],$id,$date,(string)($q['currency']??'USD'),'Materiales · '.($q['proposal_name']?:'Presupuesto').' · v'.$q['version_no'],$materials]);
  $matId=(int)$db->lastInsertId();qsReplace($db,$q,$matId,['materiales']);
  if($labor>0){
-  $db->prepare("INSERT INTO charges(project_id,quote_id,charge_date,type,currency,description,amount) VALUES(?,?,?,'mano_obra','USD',?,?)")
-     ->execute([(int)$q['project_id'],$id,$date,'Mano de obra · '.($q['proposal_name']?:'Presupuesto').' · v'.$q['version_no'],$labor]);
+  $db->prepare("INSERT INTO charges(project_id,quote_id,charge_date,type,currency,description,amount) VALUES(?,?,?,'mano_obra',?,?,?)")
+     ->execute([(int)$q['project_id'],$id,$date,(string)($q['currency']??'USD'),'Mano de obra · '.($q['proposal_name']?:'Presupuesto').' · v'.$q['version_no'],$labor]);
   $labId=(int)$db->lastInsertId();qsReplace($db,$q,$labId,['ingenieria','mano_obra']);
  }
  $db->prepare("UPDATE projects SET status='en_obra' WHERE id=?")->execute([(int)$q['project_id']]);
