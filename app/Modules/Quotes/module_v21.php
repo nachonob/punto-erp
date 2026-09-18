@@ -35,11 +35,13 @@ $inject=<<<'HTML'
  function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
  function removeSynthetic(){document.querySelectorAll('tr').forEach(r=>{const sku=r.querySelector('.sku-input,input[name$="[sku]"]');if(sku&&sku.value==='__CONCEPT_TOTAL__')r.remove();});}
  function addPanel(){
-  if(document.querySelector('.concept-price-panel'))return;
-  const blocks=document.querySelectorAll('.material-block');if(!blocks.length)return;
-  const last=blocks[blocks.length-1],p=document.createElement('div');p.className='concept-price-panel';
-  p.innerHTML='<div><label>Concepto del precio total</label><input name="concept_total_label" value="'+esc(savedLabel||'Materiales')+'" placeholder="Ej.: Materiales"></div><div><label>Precio total</label><input name="concept_total_amount" type="number" min="0" step="0.01" value="'+(Number(savedAmount||0)||'')+'" placeholder="0.00"></div>';
-  last.insertAdjacentElement('afterend',p);
+  const container=document.getElementById('blocks');if(!container)return;
+  let p=document.querySelector('.concept-price-panel');
+  if(!p){
+   p=document.createElement('div');p.className='concept-price-panel';
+   p.innerHTML='<div><label>Opción especial: concepto del precio total</label><input name="concept_total_label" value="'+esc(savedLabel||'Materiales')+'" placeholder="Ej.: Materiales"></div><div><label>Precio total</label><input name="concept_total_amount" type="number" min="0" step="0.01" value="'+(Number(savedAmount||0)||'')+'" placeholder="0.00"></div>';
+  }
+  if(p.previousElementSibling!==container)container.insertAdjacentElement('afterend',p);
  }
  function ensureSentStatus(){
   const s=document.querySelector('select[name="status"]');if(!s)return;
