@@ -65,6 +65,8 @@ if($a==='new_quote'){
 }
 
 $isNewJson=json_encode($a==='new_quote');
+$editingQuoteId=$a==='edit_quote'?(int)($_GET['id']??0):0;
+$editingQuoteIdJson=json_encode($editingQuoteId);
 
 $inject=<<<HTML
 <script>
@@ -82,6 +84,20 @@ $inject=<<<HTML
  }
  const name=document.querySelector('input[name="proposal_name"]');
  if(name){name.required=true;name.placeholder='Ej.: Departamento piso 1 · Unidad A';const label=name.closest('p')?.querySelector('label');if(label)label.innerHTML='Nombre del presupuesto';}
+ const quoteId=$editingQuoteIdJson;
+ const form=document.getElementById('quoteForm');
+ if(form&&quoteId>0&&!form.querySelector('.quote-pdf-action')){
+  const save=[...form.querySelectorAll('button')].find(button=>button.type==='submit'||(!button.type&&button.textContent.includes('Guardar')));
+  if(save){
+   save.textContent='Guardar cambios';
+   const pdf=document.createElement('a');
+   pdf.className='btn dark quote-pdf-action';
+   pdf.href='index.php?a=quote_view&id='+quoteId;
+   pdf.textContent='Generar PDF / enviar';
+   pdf.style.marginLeft='10px';
+   save.insertAdjacentElement('afterend',pdf);
+  }
+ }
 })();
 </script>
 HTML;
