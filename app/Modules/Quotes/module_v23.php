@@ -36,16 +36,28 @@ $inject=<<<'HTML'
  if(rubroField)rubroField.hidden=true;
 
  const configuredNames=__CATEGORY_NAMES__;
- const workingLifeSmart='LifeSmart / Domótica';
- const duplicateLifeSmart='Domótica LifeSmart';
+ const canonicalLifeSmart='Domótica LifeSmart';
+ const lifeSmartAliases=new Set([
+  'domótica lifesmart',
+  'domotica lifesmart',
+  'domótica live smart',
+  'domotica live smart',
+  'lifesmart / domótica',
+  'lifesmart / domotica',
+  'live smart / domótica',
+  'live smart / domotica'
+ ]);
+ const normalizedCategory=name=>{
+  const value=String(name||'').trim();
+  return lifeSmartAliases.has(value.toLocaleLowerCase('es'))?canonicalLifeSmart:value;
+ };
  const productCategoryNames=Object.values(products).map(product=>String(product.category||'Otros').trim());
  const names=[...new Set([
-  ...configuredNames.map(name=>String(name||'').trim()),
-  ...productCategoryNames
- ].filter(name=>name&&name!==duplicateLifeSmart))]
+  ...configuredNames.map(normalizedCategory),
+  ...productCategoryNames.map(normalizedCategory)
+ ].filter(Boolean))]
   .sort((a,b)=>{
-   const label=value=>value===workingLifeSmart?'Domótica LifeSmart':value;
-   return label(a).localeCompare(label(b),'es',{sensitivity:'base'});
+   return a.localeCompare(b,'es',{sensitivity:'base'});
   });
 
  const panel=document.createElement('section');
@@ -66,7 +78,7 @@ $inject=<<<'HTML'
  }
 
  const all=addChip('Todas','__all__',true);
- const categoryInputs=names.map(name=>addChip(name===workingLifeSmart?'Domótica LifeSmart':name,name,false));
+ const categoryInputs=names.map(name=>addChip(name,name,false));
 
  function selectedCategories(){
   if(all.checked)return [];
@@ -77,7 +89,7 @@ $inject=<<<'HTML'
   q=String(q||'').trim().toLowerCase();
   let available=Object.values(products);
   const selected=selectedCategories();
-  if(selected.length)available=available.filter(product=>selected.includes(String(product.category||'Otros').trim()));
+  if(selected.length)available=available.filter(product=>selected.includes(normalizedCategory(product.category||'Otros')));
   if(q)available=available.filter(product=>(String(product.sku||'')+' '+String(product.description||'')+' '+String(product.category||'')).toLowerCase().includes(q));
   return available.slice(0,100);
  };
