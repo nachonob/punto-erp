@@ -90,10 +90,13 @@ $inject=<<<HTML
   const save=[...form.querySelectorAll('button')].find(button=>button.type==='submit'||(!button.type&&button.textContent.includes('Guardar')));
   if(save){
    save.textContent='Guardar cambios';
-   const pdf=document.createElement('a');
+   const pdf=document.createElement('button');
+   pdf.type='submit';
+   pdf.name='after_save';
+   pdf.value='pdf';
    pdf.className='btn dark quote-pdf-action';
-   pdf.href='index.php?a=quote_view&id='+quoteId;
    pdf.textContent='Generar PDF / enviar';
+   pdf.title='Guarda los cambios actuales y abre el presupuesto para generar o enviar el PDF';
    pdf.style.marginLeft='10px';
    save.insertAdjacentElement('afterend',pdf);
   }
