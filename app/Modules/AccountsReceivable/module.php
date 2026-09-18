@@ -7,6 +7,7 @@ $cfg=require $erpRoot.'/config.php';
 date_default_timezone_set($cfg['timezone']??'America/Argentina/Buenos_Aires');
 try{$db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);}catch(Throwable $e){http_response_code(500);exit('No se pudo conectar con MySQL. Revisá config.php.');}
 require_once $erpRoot.'/app/Services/AdiProductImport.php';
+require_once $erpRoot.'/app/Services/ProductCategoryCleanup.php';
 try{
  $brandColumn=$db->query("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='products' AND COLUMN_NAME='brand'")->fetchColumn();
  if(!(int)$brandColumn)$db->exec("ALTER TABLE products ADD COLUMN brand VARCHAR(120) NULL AFTER name, ADD INDEX idx_products_brand (brand)");
@@ -15,6 +16,7 @@ try{
  $db->exec("INSERT IGNORE INTO product_brands(name,active) VALUES('LifeSmart',1)");
  $db->exec("UPDATE products p JOIN product_categories pc ON pc.id=p.category_id SET p.brand='LifeSmart' WHERE (p.brand IS NULL OR TRIM(p.brand)='') AND LOWER(pc.name) LIKE '%lifesmart%'");
  importAdiProducts20260916($db,$erpRoot);
+ consolidateLifeSmartDomoticsCategory($db);
 }catch(Throwable $e){}
 if(isset($_SESSION['last'])&&time()-$_SESSION['last']>(int)$cfg['session_minutes']*60){session_unset();session_destroy();session_start();$_SESSION['msg']='La sesión se cerró por inactividad.';}
 $_SESSION['last']=time(); $_SESSION['csrf']??=bin2hex(random_bytes(24));
