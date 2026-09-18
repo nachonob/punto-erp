@@ -72,13 +72,28 @@ if($editingQuoteId>0){
     try{
         $totalsCfg=require $root.'/config.php';
         $totalsDb=new PDO('mysql:host='.$totalsCfg['db_host'].';dbname='.$totalsCfg['db_name'].';charset=utf8mb4',$totalsCfg['db_user'],$totalsCfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
-        $totalsStmt=$totalsDb->prepare('SELECT materials_amount,materials_tax_mode,materials_vat_rate,total FROM quotes WHERE id=?');
+        $totalsStmt=$totalsDb->prepare('SELECT materials_amount,materials_tax_mode,materials_vat_rate,labor_amount FROM quotes WHERE id=?');
         $totalsStmt->execute([$editingQuoteId]);
         if($totalsRow=$totalsStmt->fetch()){
             $materials=(float)$totalsRow['materials_amount'];
             $materialsTotal=($totalsRow['materials_tax_mode']??'sin_iva')==='mas_iva'?round($materials*(1+(float)$totalsRow['materials_vat_rate']/100),2):$materials;
-            $grandTotal=(float)$totalsRow['total'];
-            $savedTotals=['materials'=>$materialsTotal,'labor'=>max(0,$grandTotal-$materialsTotal),'grand'=>$grandTotal];
+            $laborRaw=0.0;$laborTotal=0.0;
+            $laborStmt=$totalsDb->prepare('SELECT amount,tax_mode,vat_rate FROM quote_labor_items WHERE quote_id=? ORDER BY id');
+            $laborStmt->execute([$editingQuoteId]);
+            $laborRows=$laborStmt->fetchAll();
+            if($laborRows){
+                foreach($laborRows as $laborRow){
+                    $amount=(float)$laborRow['amount'];$laborRaw+=$amount;
+                    $laborTotal+=($laborRow['tax_mode']??'sin_iva')==='mas_iva'?round($amount*(1+(float)$laborRow['vat_rate']/100),2):$amount;
+                }
+            }else{
+                $laborRaw=(float)$totalsRow['labor_amount'];$laborTotal=$laborRaw;
+            }
+            $grandTotal=round($materialsTotal+$laborTotal,2);
+            $subtotal=round($materials+$laborRaw,2);
+            $reconcile=$totalsDb->prepare('UPDATE quotes SET labor_amount=?,subtotal=?,total=? WHERE id=?');
+            $reconcile->execute([$laborRaw,$subtotal,$grandTotal,$editingQuoteId]);
+            $savedTotals=['materials'=>$materialsTotal,'labor'=>$laborTotal,'grand'=>$grandTotal];
         }
     }catch(Throwable $e){}
 }
@@ -111,9 +126,10 @@ $inject=<<<HTML
   const showSavedTotals=()=>{
    if(financialDirty)return;
    const materials=document.getElementById('materialsTotal'),labor=document.getElementById('laborTotal'),grand=document.getElementById('grandTotal');
-   if(materials)materials.textContent=money(savedTotals.materials);
-   if(labor)labor.textContent=money(savedTotals.labor);
-   if(grand)grand.textContent=money(savedTotals.grand);
+   const formatted=value=>'US$ '+Math.round(Number(value||0)).toLocaleString('es-AR');
+   if(materials)materials.textContent=formatted(savedTotals.materials);
+   if(labor)labor.textContent=formatted(savedTotals.labor);
+   if(grand)grand.textContent=formatted(savedTotals.grand);
   };
   setTimeout(showSavedTotals,100);setTimeout(showSavedTotals,700);
  }
