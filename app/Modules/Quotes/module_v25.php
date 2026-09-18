@@ -4,6 +4,13 @@ declare(strict_types=1);
 $root=dirname(__DIR__,3);
 $a=$_GET['a']??'new_quote';
 
+try{
+    require_once $root.'/app/Services/ProductCategoryCleanup.php';
+    $cleanupCfg=require $root.'/config.php';
+    $cleanupDb=new PDO('mysql:host='.$cleanupCfg['db_host'].';dbname='.$cleanupCfg['db_name'].';charset=utf8mb4',$cleanupCfg['db_user'],$cleanupCfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    consolidateLifeSmartDomoticsCategory($cleanupDb);
+}catch(Throwable $e){}
+
 /*
  * Un presupuesto creado desde "Nuevo presupuesto" siempre inicia una serie
  * independiente en v1. Las versiones siguientes se generan únicamente al
