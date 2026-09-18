@@ -33,7 +33,7 @@ $inject=<<<'HTML'
 (function(){
  const savedAmount=__AMOUNT__,savedLabel=__LABEL__,savedStatus=__STATUS__;
  function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
- function removeSynthetic(){document.querySelectorAll('tr').forEach(r=>{const sku=r.querySelector('.sku-input,input[name$="[sku]"]');if(sku&&sku.value==='__CONCEPT_TOTAL__')r.remove();});}
+ function removeSynthetic(){document.querySelectorAll('tr').forEach(r=>{const sku=r.querySelector('.sku-input,input[name$="[sku]"]');if(!sku||sku.value!=='__CONCEPT_TOTAL__')return;const block=r.closest('.material-block'),body=r.closest('tbody');r.remove();if(block&&body&&!body.querySelector('tr'))block.remove();});}
  function addPanel(){
   const container=document.getElementById('blocks');if(!container)return;
   let p=document.querySelector('.concept-price-panel');
