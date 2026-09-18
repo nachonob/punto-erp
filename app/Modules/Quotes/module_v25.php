@@ -67,6 +67,22 @@ if($a==='new_quote'){
 $isNewJson=json_encode($a==='new_quote');
 $editingQuoteId=$a==='edit_quote'?(int)($_GET['id']??0):0;
 $editingQuoteIdJson=json_encode($editingQuoteId);
+$savedTotals=null;
+if($editingQuoteId>0){
+    try{
+        $totalsCfg=require $root.'/config.php';
+        $totalsDb=new PDO('mysql:host='.$totalsCfg['db_host'].';dbname='.$totalsCfg['db_name'].';charset=utf8mb4',$totalsCfg['db_user'],$totalsCfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+        $totalsStmt=$totalsDb->prepare('SELECT materials_amount,materials_tax_mode,materials_vat_rate,total FROM quotes WHERE id=?');
+        $totalsStmt->execute([$editingQuoteId]);
+        if($totalsRow=$totalsStmt->fetch()){
+            $materials=(float)$totalsRow['materials_amount'];
+            $materialsTotal=($totalsRow['materials_tax_mode']??'sin_iva')==='mas_iva'?round($materials*(1+(float)$totalsRow['materials_vat_rate']/100),2):$materials;
+            $grandTotal=(float)$totalsRow['total'];
+            $savedTotals=['materials'=>$materialsTotal,'labor'=>max(0,$grandTotal-$materialsTotal),'grand'=>$grandTotal];
+        }
+    }catch(Throwable $e){}
+}
+$savedTotalsJson=json_encode($savedTotals,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
 
 $inject=<<<HTML
 <script>
@@ -85,7 +101,23 @@ $inject=<<<HTML
  const name=document.querySelector('input[name="proposal_name"]');
  if(name){name.required=true;name.placeholder='Ej.: Departamento piso 1 · Unidad A';const label=name.closest('p')?.querySelector('label');if(label)label.innerHTML='Nombre del presupuesto';}
  const quoteId=$editingQuoteIdJson;
+ const savedTotals=$savedTotalsJson;
  const form=document.getElementById('quoteForm');
+ if(form&&savedTotals){
+  let financialDirty=false;
+  const financialSelector='.qty,.unit-price,.item-discount,.labor-amount,.labor-tax,.labor-vat,#materialsTax,#materialsVat,.discount-value,.discount-scope,.discount-type';
+  const markDirty=event=>{if(event.isTrusted&&event.target?.matches?.(financialSelector))financialDirty=true;};
+  form.addEventListener('input',markDirty,true);form.addEventListener('change',markDirty,true);
+  const showSavedTotals=()=>{
+   if(financialDirty)return;
+   const materials=document.getElementById('materialsTotal'),labor=document.getElementById('laborTotal'),grand=document.getElementById('grandTotal');
+   if(materials)materials.textContent=money(savedTotals.materials);
+   if(labor)labor.textContent=money(savedTotals.labor);
+   if(grand)grand.textContent=money(savedTotals.grand);
+  };
+  setTimeout(showSavedTotals,100);setTimeout(showSavedTotals,700);
+ }
+
  if(form&&quoteId>0&&!form.querySelector('.quote-pdf-action')){
   const save=[...form.querySelectorAll('button')].find(button=>button.type==='submit'||(!button.type&&button.textContent.includes('Guardar')));
   if(save){
