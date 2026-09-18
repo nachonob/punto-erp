@@ -74,6 +74,22 @@ if($editing){
  foreach($s as $li)$blocks[]=['type'=>'labor','title'=>$li['title'],'description'=>$li['description'],'amount'=>(float)$li['amount'],'tax_mode'=>$li['tax_mode'],'vat_rate'=>(float)$li['vat_rate'],'order'=>(int)$li['block_order'],'row_id'=>(int)$li['id']];
  if(!$blocks){$blocks[]=['type'=>'materials','title'=>'Materiales','items'=>[],'order'=>10];if((float)($q['labor_amount']??0)>0)$blocks[]=['type'=>'labor','title'=>'Mano de obra','description'=>$q['labor_description']?:'Configuración, montaje y diseño de escenas','amount'=>(float)$q['labor_amount'],'tax_mode'=>'sin_iva','vat_rate'=>21,'order'=>20];}
  usort($blocks,static function(array $left,array $right):int{$cmp=((int)$left['order'])<=>((int)$right['order']);if($cmp!==0)return $cmp;return($left['type']==='materials'?0:1)<=>($right['type']==='materials'?0:1);});
+ // Limpia duplicados accidentales generados por la vinculación histórica solo por número de orden.
+ // Se elimina únicamente el bloque genérico "Materiales" si es idéntico a uno con nombre propio.
+ $deduped=[];$materialSignatureIndex=[];
+ foreach($blocks as $block){
+  if($block['type']==='materials'&&!empty($block['items'])){
+   $parts=[];foreach($block['items'] as $item)$parts[]=implode('|',[(string)($item['product_id']??''),(string)($item['sku']??''),(string)($item['quantity']??''),(string)($item['unit_price']??''),(string)($item['discount_pct']??0)]);
+   $signature=hash('sha256',implode("\n",$parts));$generic=mb_strtolower(trim((string)$block['title']),'UTF-8')==='materiales';
+   if(isset($materialSignatureIndex[$signature])){
+    $existingIndex=$materialSignatureIndex[$signature];$existingGeneric=mb_strtolower(trim((string)$deduped[$existingIndex]['title']),'UTF-8')==='materiales';
+    if($generic)continue;
+    if($existingGeneric){$deduped[$existingIndex]=$block;continue;}
+   }else{$materialSignatureIndex[$signature]=count($deduped);}
+  }
+  $deduped[]=$block;
+ }
+ $blocks=array_values($deduped);
 }
 else{
  $preProject=(int)($_GET['project_id']??0);$q['project_id']=$preProject;foreach($projects as $p)if((int)$p['id']===$preProject)$preClient=(int)$p['client_id'];
