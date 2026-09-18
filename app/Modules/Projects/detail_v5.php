@@ -25,7 +25,16 @@ try{
   if($db5->inTransaction())$db5->rollBack();
   throw $migrationError;
  }
- $s=$db5->prepare("SELECT * FROM quotes WHERE project_id=? AND status IN ('aprobado_inicial','final') ORDER BY version_no DESC,id DESC");$s->execute([$projectId]);$approved=$s->fetchAll();
+ // Recupera presupuestos aceptados desde el enlace público antes de que existiera la creación automática del cargo.
+ $backfill=$db5->prepare("INSERT INTO charges(project_id,quote_id,charge_date,type,currency,description,amount)
+  SELECT q.project_id,q.id,COALESCE(DATE(q.followup_closed_at),q.quote_date),'ingenieria',q.currency,
+   CONCAT('Adelanto de ingeniería ',p.engineering_pct,'% · ',COALESCE(NULLIF(q.proposal_name,''),'Presupuesto'),' · v',q.version_no),
+   ROUND(q.total*p.engineering_pct/100,2)
+  FROM quotes q JOIN projects p ON p.id=q.project_id
+  WHERE q.project_id=? AND q.status='aprobado_inicial' AND p.engineering_pct>0
+   AND NOT EXISTS(SELECT 1 FROM charges c WHERE c.quote_id=q.id AND c.type='ingenieria' AND c.active=1)");
+ $backfill->execute([$projectId]);
+ $s=$db5->prepare("SELECT * FROM quotes WHERE project_id=? AND status IN ('aprobado_inicial','aprobado_definitivo','final') ORDER BY version_no DESC,id DESC");$s->execute([$projectId]);$approved=$s->fetchAll();
  $current=[];foreach($approved as $q){$key=($q['quote_category']??'general').'|'.($q['currency']??'USD');if(!isset($current[$key]))$current[$key]=$q;}
  foreach(['USD','ARS'] as $cur)$financial[$cur]=['total'=>0.0,'materials'=>0.0,'materials_input'=>0.0,'materials_vat'=>0.0,'labor'=>0.0,'labor_input'=>0.0,'labor_vat'=>0.0,'paid'=>0.0,'due'=>0.0,'approved_ids'=>[]];
  foreach($current as $q){$cur=$q['currency']??'USD';if(!isset($financial[$cur]))continue;$mi=(float)$q['materials_amount'];$li=(float)$q['labor_amount'];$mm=$q['materials_tax_mode']??'sin_iva';$lm=$q['labor_tax_mode']??'sin_iva';$mr=(float)($q['materials_vat_rate']??21);$lr=(float)($q['labor_vat_rate']??21);$mv=$mm==='mas_iva'?round($mi*$mr/100,2):0;$lv=$lm==='mas_iva'?round($li*$lr/100,2):0;$financial[$cur]['materials_input']+=$mi;$financial[$cur]['materials_vat']+=$mv;$financial[$cur]['materials']+=$mi+$mv;$financial[$cur]['labor_input']+=$li;$financial[$cur]['labor_vat']+=$lv;$financial[$cur]['labor']+=$li+$lv;$financial[$cur]['total']+=($mi+$mv+$li+$lv);$financial[$cur]['approved_ids'][(int)$q['id']]=true;}
