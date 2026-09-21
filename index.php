@@ -115,6 +115,11 @@ if($a==='quote_status'){
 if(in_array($a,['quote_followup','save_quote_followup'],true)){
  require __DIR__.'/app/Modules/Quotes/module.php';exit;
 }
+if(in_array($a,['deliveries','new_delivery','save_delivery','delivery','confirm_delivery','delivery_print'],true)){
+ [,,$quoteManage]=recoveredQuoteRouteAccess();
+ if(!$quoteManage){http_response_code(403);exit('Tu perfil no permite gestionar entregas de materiales.');}
+ require __DIR__.'/app/Modules/Deliveries/module.php';exit;
+}
 $module=$_GET['module']??'accounts';
 $registry=require __DIR__.'/app/modules.php';
 if(!isset($registry[$module])){http_response_code(404);exit('Módulo inexistente.');}
