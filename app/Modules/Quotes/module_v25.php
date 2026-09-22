@@ -28,9 +28,19 @@ if($a==='save_quote'){
  */
 if($a==='update_quote'){
     $verifyQuoteId=(int)($_POST['quote_id']??0);
-    $verifyMaterialsMode=(string)($_POST['materials_tax_mode']??'');
-    $verifyMaterialsVat=(float)($_POST['materials_vat_rate']??21);
+    $verifyMaterialsMode=(string)($_POST['confirmed_materials_tax_mode']??$_POST['materials_tax_mode']??'');
+    $verifyMaterialsVat=(float)($_POST['confirmed_materials_vat_rate']??$_POST['materials_vat_rate']??21);
     if($verifyQuoteId>0&&in_array($verifyMaterialsMode,['sin_iva','mas_iva','iva_incluido'],true)){
+        $_POST['materials_tax_mode']=$verifyMaterialsMode;
+        $_POST['materials_vat_rate']=(string)$verifyMaterialsVat;
+        try{
+            if(session_status()!==PHP_SESSION_ACTIVE)session_start();
+            if(hash_equals((string)($_SESSION['csrf']??''),(string)($_POST['csrf']??''))){
+                $cfg=require $root.'/config.php';
+                $taxDb=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+                $taxDb->prepare("UPDATE quotes SET materials_tax_mode=?,materials_vat_rate=? WHERE id=? AND status='borrador'")->execute([$verifyMaterialsMode,$verifyMaterialsVat,$verifyQuoteId]);
+            }
+        }catch(Throwable $e){}
         register_shutdown_function(static function()use($root,$verifyQuoteId,$verifyMaterialsMode,$verifyMaterialsVat):void{
             $message=(string)($_SESSION['msg']??'');
             if(!str_starts_with($message,'Presupuesto actualizado')&&!str_starts_with($message,'Borrador guardado'))return;
@@ -156,6 +166,16 @@ $inject=<<<HTML
  const quoteId=$editingQuoteIdJson;
  const savedTotals=$savedTotalsJson;
  const form=document.getElementById('quoteForm');
+ if(form){
+  form.addEventListener('submit',()=>{
+   const mode=document.getElementById('materialsTax'),vat=document.getElementById('materialsVat');
+   [['confirmed_materials_tax_mode',mode?.value||''],['confirmed_materials_vat_rate',vat?.value||'21']].forEach(([field,value])=>{
+    let input=form.querySelector('input[name="'+field+'"]');
+    if(!input){input=document.createElement('input');input.type='hidden';input.name=field;form.appendChild(input);}
+    input.value=value;
+   });
+  },true);
+ }
  if(form&&savedTotals){
   let financialDirty=false;
   const financialSelector='.qty,.unit-price,.item-discount,.labor-amount,.labor-tax,.labor-vat,#materialsTax,#materialsVat,.discount-value,.discount-scope,.discount-type';
