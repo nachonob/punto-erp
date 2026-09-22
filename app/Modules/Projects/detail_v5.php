@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 $root=dirname(__DIR__,3);$cfg=require $root.'/config.php';$projectId=(int)($_GET['id']??0);
+require_once $root.'/app/Services/QuoteFinancialCalculator.php';
 $financial=[];
 try{
  $db5=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
@@ -38,7 +39,7 @@ try{
  // Cada presupuesto aprobado representa un alcance vendible independiente, incluso si comparte rubro y moneda.
  $current=$approved;
  foreach(['USD','ARS'] as $cur)$financial[$cur]=['total'=>0.0,'materials'=>0.0,'materials_input'=>0.0,'materials_vat'=>0.0,'materials_paid'=>0.0,'labor'=>0.0,'labor_input'=>0.0,'labor_vat'=>0.0,'labor_paid'=>0.0,'other_paid'=>0.0,'allocated'=>0.0,'unallocated'=>0.0,'paid'=>0.0,'due'=>0.0,'approved_ids'=>[]];
- foreach($current as $q){$cur=$q['currency']??'USD';if(!isset($financial[$cur]))continue;$mi=(float)$q['materials_amount'];$li=(float)$q['labor_amount'];$mm=$q['materials_tax_mode']??'sin_iva';$lm=$q['labor_tax_mode']??'sin_iva';$mr=(float)($q['materials_vat_rate']??21);$lr=(float)($q['labor_vat_rate']??21);$mv=$mm==='mas_iva'?round($mi*$mr/100,2):0;$lv=$lm==='mas_iva'?round($li*$lr/100,2):0;$financial[$cur]['materials_input']+=$mi;$financial[$cur]['materials_vat']+=$mv;$financial[$cur]['materials']+=$mi+$mv;$financial[$cur]['labor_input']+=$li;$financial[$cur]['labor_vat']+=$lv;$financial[$cur]['labor']+=$li+$lv;$financial[$cur]['total']+=($mi+$mv+$li+$lv);$financial[$cur]['approved_ids'][(int)$q['id']]=true;}
+ foreach($current as $q){$cur=$q['currency']??'USD';if(!isset($financial[$cur]))continue;$breakdown=quoteFinancialBreakdown($db5,$q);$financial[$cur]['materials_input']+=$breakdown['materials_input'];$financial[$cur]['materials_vat']+=$breakdown['materials_vat'];$financial[$cur]['materials']+=$breakdown['materials_total'];$financial[$cur]['labor_input']+=$breakdown['labor_input'];$financial[$cur]['labor_vat']+=$breakdown['labor_vat'];$financial[$cur]['labor']+=$breakdown['labor_total'];$financial[$cur]['total']+=$breakdown['total'];$financial[$cur]['approved_ids'][(int)$q['id']]=true;}
  $s=$db5->prepare('SELECT currency,SUM(amount) amount FROM payments WHERE project_id=? GROUP BY currency');$s->execute([$projectId]);foreach($s as $p)if(isset($financial[$p['currency']]))$financial[$p['currency']]['paid']=(float)$p['amount'];
  $s=$db5->prepare('SELECT c.*,COALESCE((SELECT SUM(a.amount) FROM allocations a WHERE a.charge_id=c.id),0) paid FROM charges c WHERE c.project_id=? AND c.active=1');$s->execute([$projectId]);foreach($s as $c){$cur=$c['currency'];if(!isset($financial[$cur]))continue;$qid=(int)($c['quote_id']??0);if($qid>0&&!isset($financial[$cur]['approved_ids'][$qid]))continue;$applied=(float)$c['paid'];$financial[$cur]['due']+=max(0,(float)$c['amount']-$applied);$financial[$cur]['allocated']+=$applied;if($c['type']==='materiales')$financial[$cur]['materials_paid']+=$applied;elseif(in_array($c['type'],['ingenieria','mano_obra'],true))$financial[$cur]['labor_paid']+=$applied;else $financial[$cur]['other_paid']+=$applied;}
  foreach(['USD','ARS'] as $cur)$financial[$cur]['unallocated']=max(0,$financial[$cur]['paid']-$financial[$cur]['allocated']);
