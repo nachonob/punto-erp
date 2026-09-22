@@ -102,6 +102,11 @@ if($a==='quote_state_edit'){
  if(!$manage){http_response_code(403);exit('Tu perfil no permite cambiar el estado del presupuesto.');}
  require __DIR__.'/app/Modules/Quotes/quote_state_edit.php';exit;
 }
+if($a==='quote_unlock'){
+ [,,$manage]=recoveredQuoteRouteAccess();
+ if(!$manage){http_response_code(403);exit('Tu perfil no permite desbloquear presupuestos.');}
+ require __DIR__.'/app/Modules/Quotes/quote_unlock.php';exit;
+}
 if($a==='quote_metadata_update'){
  [,,$manage]=recoveredQuoteRouteAccess();
  if(!$manage){http_response_code(403);exit('Tu perfil no permite editar datos del presupuesto.');}
