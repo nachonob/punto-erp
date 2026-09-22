@@ -20,6 +20,44 @@ if($a==='save_quote'){
     $_POST['version_no']='1';
 }
 
+/*
+ * Al editar una versión desbloqueada, verificamos al finalizar la petición que
+ * la condición de IVA elegida haya quedado persistida. Algunos presupuestos
+ * antiguos atraviesan varias capas de compatibilidad y podían recuperar el
+ * valor anterior aunque el resto del formulario se hubiera procesado.
+ */
+if($a==='update_quote'){
+    $verifyQuoteId=(int)($_POST['quote_id']??0);
+    $verifyMaterialsMode=(string)($_POST['materials_tax_mode']??'');
+    $verifyMaterialsVat=(float)($_POST['materials_vat_rate']??21);
+    if($verifyQuoteId>0&&in_array($verifyMaterialsMode,['sin_iva','mas_iva','iva_incluido'],true)){
+        register_shutdown_function(static function()use($root,$verifyQuoteId,$verifyMaterialsMode,$verifyMaterialsVat):void{
+            $message=(string)($_SESSION['msg']??'');
+            if(!str_starts_with($message,'Presupuesto actualizado')&&!str_starts_with($message,'Borrador guardado'))return;
+            try{
+                $cfg=require $root.'/config.php';
+                $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+                $s=$db->prepare("SELECT materials_amount,labor_amount,status FROM quotes WHERE id=?");
+                $s->execute([$verifyQuoteId]);
+                $quote=$s->fetch();
+                if(!$quote||($quote['status']??'')!=='borrador')return;
+                $materials=(float)$quote['materials_amount'];
+                $materialsTotal=$verifyMaterialsMode==='mas_iva'?round($materials*(1+$verifyMaterialsVat/100),2):$materials;
+                $laborTotal=0.0;
+                $labor=$db->prepare('SELECT amount,tax_mode,vat_rate FROM quote_labor_items WHERE quote_id=?');
+                $labor->execute([$verifyQuoteId]);
+                $laborRows=$labor->fetchAll();
+                foreach($laborRows as $row){
+                    $amount=(float)$row['amount'];
+                    $laborTotal+=($row['tax_mode']??'sin_iva')==='mas_iva'?round($amount*(1+(float)$row['vat_rate']/100),2):$amount;
+                }
+                if(!$laborRows)$laborTotal=(float)$quote['labor_amount'];
+                $db->prepare('UPDATE quotes SET materials_tax_mode=?,materials_vat_rate=?,total=? WHERE id=?')->execute([$verifyMaterialsMode,$verifyMaterialsVat,round($materialsTotal+$laborTotal,2),$verifyQuoteId]);
+            }catch(Throwable $e){}
+        });
+    }
+}
+
 if($a==='edit_quote'){
     try{
         $cfg=require $root.'/config.php';
