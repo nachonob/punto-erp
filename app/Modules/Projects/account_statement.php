@@ -2,6 +2,7 @@
 declare(strict_types=1);
 session_start();
 $root=dirname(__DIR__,3);$cfg=require $root.'/config.php';date_default_timezone_set($cfg['timezone']??'America/Argentina/Buenos_Aires');
+require_once $root.'/app/Services/QuoteFinancialCalculator.php';
 $id=(int)($_GET['id']??0);
 $token=(string)($_GET['token']??'');
 $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
@@ -25,7 +26,7 @@ $s=$db->prepare("SELECT * FROM quotes WHERE project_id=? AND status IN ('aprobad
 $s=$db->prepare('SELECT * FROM payments WHERE project_id=? ORDER BY payment_date,id');$s->execute([$id]);$payments=$s->fetchAll();
 $s=$db->prepare('SELECT c.*,COALESCE((SELECT SUM(a.amount) FROM allocations a WHERE a.charge_id=c.id),0) paid FROM charges c WHERE c.project_id=? AND c.active=1');$s->execute([$id]);$charges=$s->fetchAll();
 $totals=[];foreach(['USD','ARS'] as $cur)$totals[$cur]=['approved'=>0.0,'materials'=>0.0,'materials_vat'=>0.0,'labor'=>0.0,'labor_vat'=>0.0,'paid'=>0.0,'materials_paid'=>0.0,'labor_paid'=>0.0,'due_now'=>0.0];
-$approvedIds=[];foreach($quotes as $q){$cur=$q['currency']??'USD';if(!isset($totals[$cur]))continue;$mi=(float)$q['materials_amount'];$li=(float)$q['labor_amount'];$mv=($q['materials_tax_mode']??'')==='mas_iva'?round($mi*(float)($q['materials_vat_rate']??21)/100,2):0.0;$lv=($q['labor_tax_mode']??'')==='mas_iva'?round($li*(float)($q['labor_vat_rate']??21)/100,2):0.0;$totals[$cur]['materials']+=$mi;$totals[$cur]['materials_vat']+=$mv;$totals[$cur]['labor']+=$li;$totals[$cur]['labor_vat']+=$lv;$totals[$cur]['approved']+=$mi+$mv+$li+$lv;$approvedIds[(int)$q['id']]=true;}
+$approvedIds=[];foreach($quotes as $q){$cur=$q['currency']??'USD';if(!isset($totals[$cur]))continue;$breakdown=quoteFinancialBreakdown($db,$q);$totals[$cur]['materials']+=$breakdown['materials_input'];$totals[$cur]['materials_vat']+=$breakdown['materials_vat'];$totals[$cur]['labor']+=$breakdown['labor_input'];$totals[$cur]['labor_vat']+=$breakdown['labor_vat'];$totals[$cur]['approved']+=$breakdown['total'];$approvedIds[(int)$q['id']]=true;}
 foreach($payments as $p){$cur=$p['currency'];if(isset($totals[$cur]))$totals[$cur]['paid']+=(float)$p['amount'];}
 foreach($charges as $c){$cur=$c['currency'];if(!isset($totals[$cur]))continue;$qid=(int)($c['quote_id']??0);if($qid>0&&!isset($approvedIds[$qid]))continue;$paid=(float)$c['paid'];$totals[$cur]['due_now']+=max(0,(float)$c['amount']-$paid);if($c['type']==='materiales')$totals[$cur]['materials_paid']+=$paid;elseif(in_array($c['type'],['ingenieria','mano_obra'],true))$totals[$cur]['labor_paid']+=$paid;}
 function es($v):string{return htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');}
