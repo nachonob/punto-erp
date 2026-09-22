@@ -4,14 +4,23 @@ session_start();
 $root=dirname(__DIR__,3);$cfg=require $root.'/config.php';date_default_timezone_set($cfg['timezone']??'America/Argentina/Buenos_Aires');
 $id=(int)($_GET['id']??0);
 $token=(string)($_GET['token']??'');
-$statementSecret=hash('sha256',(string)($cfg['db_pass']??'').'|'.(string)($cfg['db_name']??'').'|project-statement');
-$expectedToken=hash_hmac('sha256',(string)$id,$statementSecret);
-$isPublic=$id>0&&$token!==''&&hash_equals($expectedToken,$token);
-if(!$isPublic&&empty($_SESSION['user'])){header('Location:index.php');exit;}
-$permissions=$_SESSION['user']['permissions']??[];$allowed=($_SESSION['user']['role']??'')==='admin'||!empty($permissions['projects']['view'])||!empty($permissions['projects']['manage']);
-if(!$isPublic&&!$allowed){http_response_code(403);exit('Tu perfil no permite acceder a proyectos.');}
 $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+$db->exec("CREATE TABLE IF NOT EXISTS project_statement_links (project_id INT UNSIGNED NOT NULL PRIMARY KEY,public_token VARCHAR(64) NOT NULL UNIQUE,created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,last_viewed_at DATETIME NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+$isPublic=($_GET['a']??'')==='public_project_statement'&&$token!=='';
+if($isPublic){
+ $linkStmt=$db->prepare('SELECT project_id FROM project_statement_links WHERE public_token=?');$linkStmt->execute([$token]);$id=(int)($linkStmt->fetchColumn()?:0);
+ if(!$id){http_response_code(404);exit('El enlace del estado de cuenta no es válido.');}
+ $db->prepare('UPDATE project_statement_links SET last_viewed_at=NOW() WHERE project_id=?')->execute([$id]);
+}else{
+ if(empty($_SESSION['user'])){header('Location:index.php');exit;}
+ $permissions=$_SESSION['user']['permissions']??[];$allowed=($_SESSION['user']['role']??'')==='admin'||!empty($permissions['projects']['view'])||!empty($permissions['projects']['manage']);
+ if(!$allowed){http_response_code(403);exit('Tu perfil no permite acceder a proyectos.');}
+}
 $s=$db->prepare('SELECT p.*,c.business_name,c.contact_name,c.cuit,c.email,c.whatsapp FROM projects p JOIN clients c ON c.id=p.client_id WHERE p.id=?');$s->execute([$id]);$project=$s->fetch();if(!$project){http_response_code(404);exit('Proyecto inexistente.');}
+if(!$isPublic){
+ $linkStmt=$db->prepare('SELECT public_token FROM project_statement_links WHERE project_id=?');$linkStmt->execute([$id]);$token=(string)($linkStmt->fetchColumn()?:'');
+ if($token===''){$token=bin2hex(random_bytes(32));$db->prepare('INSERT INTO project_statement_links(project_id,public_token) VALUES(?,?)')->execute([$id,$token]);}
+}
 $s=$db->prepare("SELECT * FROM quotes WHERE project_id=? AND status IN ('aprobado_inicial','aprobado_definitivo','final') ORDER BY quote_date,id");$s->execute([$id]);$quotes=$s->fetchAll();
 $s=$db->prepare('SELECT * FROM payments WHERE project_id=? ORDER BY payment_date,id');$s->execute([$id]);$payments=$s->fetchAll();
 $s=$db->prepare('SELECT c.*,COALESCE((SELECT SUM(a.amount) FROM allocations a WHERE a.charge_id=c.id),0) paid FROM charges c WHERE c.project_id=? AND c.active=1');$s->execute([$id]);$charges=$s->fetchAll();
@@ -27,7 +36,7 @@ $contact=trim((string)($project['contact_name']??''))?:trim((string)$project['bu
 $email=trim((string)($project['email']??''));
 $whatsapp=preg_replace('/\D+/','',(string)($project['whatsapp']??''))??'';
 $shareSubject='Estado de cuenta · '.$project['project_number'].' · Punto Domótica';
-$publicUrl=rtrim((string)$cfg['base_url'],'/').'/?a=project_statement&id='.$id.'&token='.$expectedToken;
+$publicUrl=rtrim((string)$cfg['base_url'],'/').'/?a=public_project_statement&token='.$token;
 $shareText='Hola '.$contact.', te enviamos el estado de cuenta actualizado del proyecto '.$project['project_number'].' · '.$project['name'].'. Podés verlo, descargarlo o imprimirlo desde este enlace: '.$publicUrl;
 ?><!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Estado de cuenta · <?=es($project['project_number'])?></title><style>
 @page{size:A4;margin:13mm}*{box-sizing:border-box}body{margin:0;background:#edf0f3;color:#202832;font:13px/1.45 Arial,sans-serif}.toolbar{max-width:900px;margin:18px auto;display:flex;justify-content:space-between;align-items:center;gap:10px}.toolbar-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:9px}.btn{border:0;border-radius:8px;padding:11px 16px;background:#ff6702;color:#fff;text-decoration:none;font-weight:700;cursor:pointer}.btn.light{background:#fff;color:#27303b}.btn.green{background:#15815c;color:#fff}.sheet{width:210mm;max-width:calc(100% - 24px);min-height:297mm;margin:0 auto 28px;background:#fff;padding:15mm;box-shadow:0 5px 24px #0002}.head{display:flex;justify-content:space-between;gap:25px;align-items:flex-start;border-bottom:4px solid #ff6702;padding-bottom:18px}.logo{width:215px;max-width:46%;height:auto}.doc{text-align:right}.doc h1{font-size:25px;margin:0 0 5px}.muted{color:#707984}.meta{display:grid;grid-template-columns:1fr 1fr;gap:12px 30px;padding:20px 0}.meta small{display:block;text-transform:uppercase;color:#78818b;font-size:10px;font-weight:bold}.meta b{font-size:14px}.currency{margin-top:16px;page-break-inside:avoid}.currency h2{font-size:18px;margin:0 0 10px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.box{border:1px solid #dfe3e7;border-radius:10px;padding:13px}.box span{display:block;color:#727c86;font-size:11px}.box strong{display:block;font-size:20px;margin-top:5px}.green{color:#15815c}.red{color:#b43a3a}.detail{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}.detail .box strong{font-size:13px}.detail p{margin:6px 0 0}.section{margin-top:24px}.section h2{font-size:17px;border-bottom:2px solid #252b32;padding-bottom:7px;margin-bottom:5px}table{width:100%;border-collapse:collapse}th,td{padding:8px 6px;border-bottom:1px solid #e4e7ea;text-align:left;vertical-align:top}th{font-size:10px;text-transform:uppercase;color:#747d87}.right{text-align:right}.foot{margin-top:30px;padding-top:13px;border-top:1px solid #ddd;color:#747d87;font-size:10px}.empty{color:#747d87;padding:14px 0}@media(max-width:700px){.toolbar{align-items:stretch;flex-direction:column}.toolbar-actions{justify-content:stretch}.toolbar-actions .btn{flex:1;text-align:center}.summary,.detail,.meta{grid-template-columns:1fr}.sheet{padding:22px}.doc h1{font-size:19px}}@media print{body{background:#fff}.toolbar{display:none}.sheet{width:auto;max-width:none;min-height:0;margin:0;padding:0;box-shadow:none}.currency,.box,tr{break-inside:avoid}}
