@@ -4,6 +4,7 @@ declare(strict_types=1);
 $a=$_GET['a']??'new_quote';
 $root=dirname(__DIR__,3);
 $legacyLabor=null;
+$hasLaborItems=false;
 
 if($a==='edit_quote'){
     try{
@@ -19,6 +20,9 @@ if($a==='edit_quote'){
             $s=$dbLegacy->prepare('SELECT labor_amount,labor_description,labor_tax_mode,labor_vat_rate,materials_amount,materials_tax_mode,materials_vat_rate,total,subtotal FROM quotes WHERE id=?');
             $s->execute([$qid]);
             $legacyLabor=$s->fetch()?:null;
+            $countLabor=$dbLegacy->prepare('SELECT COUNT(*) FROM quote_labor_items WHERE quote_id=?');
+            $countLabor->execute([$qid]);
+            $hasLaborItems=(int)$countLabor->fetchColumn()>0;
             if($legacyLabor){
                 $amount=(float)($legacyLabor['labor_amount']??0);
                 if($amount<=0){
@@ -39,7 +43,7 @@ ob_start();
 require __DIR__.'/module_v9.php';
 $html=ob_get_clean();
 
-if($a==='edit_quote' && $legacyLabor){
+if($a==='edit_quote' && $legacyLabor && !$hasLaborItems){
     $legacyJson=json_encode($legacyLabor,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
     $inject=<<<HTML
 <script>
