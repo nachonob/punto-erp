@@ -43,6 +43,7 @@ if(in_array($a,['technical_schedule','save_schedule_event'],true)){require __DIR
 if(in_array($a,['technical_projects','technical_project','save_technical_project'],true)){require __DIR__.'/app/Modules/Projects/technical.php';exit;}
 if($a==='technical_quote'){require __DIR__.'/app/Modules/Quotes/technical_print.php';exit;}
 if(in_array($a,['project_plan_view','project_plan_download','upload_project_plans','upload_project_cad','delete_project_plan'],true)){require __DIR__.'/app/Modules/Projects/project_plans.php';exit;}
+if($a==='project_statement'){require __DIR__.'/app/Modules/Projects/account_statement.php';exit;}
 if($a==='projects'){
  [$logged,$view]=recoveredProjectRouteAccess();
  if($logged&&!$view){http_response_code(403);exit('Tu perfil no permite acceder a proyectos.');}
