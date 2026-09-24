@@ -90,7 +90,7 @@ if(in_array($a,['save_quote','update_quote'],true)){
     if(empty($_SESSION['user'])){header('Location:index.php');exit;}
     if(($_SESSION['user']['role']??'')!=='admin'){http_response_code(403);exit('No autorizado.');}
     if(!hash_equals($_SESSION['csrf']??'',$_POST['csrf']??'')){http_response_code(419);exit('Solicitud vencida.');}
-    $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);q12EnsureVersioning($db);
+    $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);q12EnsureVersioning($db);ensureProjectFollowupSchema($db);
     try{
         $responsibleUserId=(int)($_SESSION['user']['id']??0);
         $userCheck=$db->prepare('SELECT id FROM users WHERE id=? AND active=1');
