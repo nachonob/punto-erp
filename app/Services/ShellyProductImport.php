@@ -23,6 +23,14 @@ function importShellyProducts20260924(PDO $db, string $erpRoot): void
         details TEXT NULL,
         imported_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    $db->exec("CREATE TABLE IF NOT EXISTS product_category_price_rules (
+        price_list_id INT UNSIGNED NOT NULL,
+        category_id INT UNSIGNED NOT NULL,
+        percentage DECIMAL(8,3) NOT NULL DEFAULT 0,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY(price_list_id,category_id),
+        INDEX idx_pcpr_category(category_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
     $done = $db->prepare('SELECT 1 FROM erp_data_imports WHERE import_key=?');
     $done->execute([$importKey]);
@@ -145,4 +153,3 @@ function importShellyProducts20260924(PDO $db, string $erpRoot): void
         throw $e;
     }
 }
-
