@@ -20,6 +20,43 @@ function normalizeProductCatalogFields(PDO $db): void
     }
 }
 
+function normalizeUnifiedProductNamesV2(PDO $db): void
+{
+    $migrationKey='productos_nombre_unificado_v2';
+    $db->exec("CREATE TABLE IF NOT EXISTS erp_data_migrations (migration_key VARCHAR(120) NOT NULL PRIMARY KEY, applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    $done=$db->prepare('SELECT 1 FROM erp_data_migrations WHERE migration_key=?');
+    $done->execute([$migrationKey]);
+    if($done->fetchColumn())return;
+
+    $db->beginTransaction();
+    try{
+        $rows=$db->query('SELECT id,sku,name,description FROM products FOR UPDATE')->fetchAll(PDO::FETCH_ASSOC);
+        $update=$db->prepare('UPDATE products SET name=?,description=? WHERE id=?');
+        foreach($rows as $row){
+            $sku=trim((string)($row['sku']??''));
+            $name=trim((string)($row['name']??''));
+            $description=trim((string)($row['description']??''));
+            $canonical=$name!==''?$name:$description;
+            if($sku!==''&&$canonical!==''){
+                $quoted=preg_quote($sku,'/');
+                $canonical=preg_replace('/^\[\s*'.$quoted.'\s*\]\s*/iu','',$canonical)??$canonical;
+                $canonical=preg_replace('/^'.$quoted.'\s*[-–—·:]\s*/iu','',$canonical)??$canonical;
+            }
+            if($canonical==='')$canonical=$sku!==''?$sku:'Producto';
+            $technical=$description;
+            if(mb_strtolower($technical,'UTF-8')===mb_strtolower($canonical,'UTF-8')||($sku!==''&&preg_match('/^\[\s*'.preg_quote($sku,'/').'\s*\]\s*/iu',$technical)))$technical='';
+            $update->execute([$canonical,$technical,(int)$row['id']]);
+        }
+        $db->exec("UPDATE quote_items qi JOIN products p ON p.id=qi.product_id SET qi.description=p.name WHERE qi.product_id IS NOT NULL AND TRIM(COALESCE(p.name,''))<>''");
+        $mark=$db->prepare('INSERT INTO erp_data_migrations(migration_key) VALUES(?)');
+        $mark->execute([$migrationKey]);
+        $db->commit();
+    }catch(Throwable $e){
+        if($db->inTransaction())$db->rollBack();
+        throw $e;
+    }
+}
+
 /**
  * Importa una sola vez el catalogo ADI validado.
  *
