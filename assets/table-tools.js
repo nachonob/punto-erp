@@ -86,6 +86,23 @@
   }
 
   function init(){
+    const productName=document.querySelector('input[name="name"]');
+    if(productName && document.querySelector('input[name="sku"]')){
+      const label=productName.closest('p')?.querySelector('label');
+      if(label)label.textContent='Producto';
+      productName.placeholder='Nombre comercial del producto';
+      const detail=document.querySelector('textarea[name="description"]');
+      if(detail){
+        const box=detail.closest('p'),detailLabel=box?.querySelector('label');
+        if(detailLabel)detailLabel.textContent='Detalle técnico (opcional)';
+        if(box && !box.querySelector('.product-detail-help')){
+          const help=document.createElement('small');
+          help.className='muted product-detail-help';
+          help.textContent='Usalo solo para información técnica adicional; no repitas el nombre del producto.';
+          box.appendChild(help);
+        }
+      }
+    }
     if(!document.getElementById('erp-table-tools-style')){
       const style=document.createElement('style');
       style.id='erp-table-tools-style';
