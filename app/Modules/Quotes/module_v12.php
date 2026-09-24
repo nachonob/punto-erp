@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 $a=$_GET['a']??'new_quote';
 $root=dirname(__DIR__,3);
+require_once $root.'/app/Core/ProjectFollowup.php';
 
 function q12Brand(string $cat):string{
     $x=mb_strtolower($cat);
@@ -48,7 +49,7 @@ if($a==='duplicate_quote'){
     if(empty($_SESSION['user'])){header('Location:index.php');exit;}
     if(($_SESSION['user']['role']??'')!=='admin'){http_response_code(403);exit('No autorizado.');}
     if(!hash_equals($_SESSION['csrf']??'',$_POST['csrf']??'')){http_response_code(419);exit('Solicitud vencida.');}
-    $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);q12EnsureVersioning($db);
+    $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);q12EnsureVersioning($db);ensureProjectFollowupSchema($db);
     try{
         $sourceId=(int)($_POST['quote_id']??0);
         $responsibleUserId=(int)($_SESSION['user']['id']??0);
@@ -150,6 +151,7 @@ if(in_array($a,['save_quote','update_quote'],true)){
             $next=q12FollowupDate($date);
             $db->prepare('UPDATE quotes SET sent_at=COALESCE(sent_at,?),responsible_user_id=COALESCE(responsible_user_id,?),next_followup_date=COALESCE(next_followup_date,?),reminder_sent_at=NULL,followup_closed_at=NULL WHERE id=?')->execute([$date,$responsibleUserId,$next,$qid]);
             $db->prepare("INSERT INTO quote_followup_history(quote_id,user_id,event_type,next_contact_date,notes) SELECT ?,?,'enviado',?,'Presupuesto marcado como enviado' WHERE NOT EXISTS (SELECT 1 FROM quote_followup_history WHERE quote_id=? AND event_type='enviado' AND DATE(event_date)=?)")->execute([$qid,$responsibleUserId,$next,$qid,$date]);
+            scheduleProjectFollowupForQuote($db,$pid,$qid,$date,$responsibleUserId,'estado');
         }elseif(in_array($status,['aprobado_inicial','aprobado_definitivo','final','rechazado'],true)){
             $db->prepare('UPDATE quotes SET next_followup_date=NULL,followup_closed_at=COALESCE(followup_closed_at,NOW()) WHERE id=?')->execute([$qid]);
         }
