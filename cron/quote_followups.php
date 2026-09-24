@@ -22,7 +22,7 @@ try{
  foreach($rows as $project){
   $claim=$db->prepare('UPDATE projects SET followup_reminder_sent_at=NOW() WHERE id=? AND next_followup_date<=CURDATE() AND followup_closed_at IS NULL AND followup_reminder_sent_at IS NULL');
   $claim->execute([$project['id']]);if(!$claim->rowCount())continue;
-  $recipients=array_values(array_unique(array_filter([(string)$project['responsible_email'],(string)($cfg['quote_reminder_email']??'iescobar@puntodomotica.com')],static fn(string $email):bool=>filter_var($email,FILTER_VALIDATE_EMAIL)!==false)));
+  $recipients=array_values(array_unique(array_filter([(string)$project['responsible_email'],'iescobar@puntodomotica.com',(string)($cfg['quote_reminder_email']??'')],static fn(string $email):bool=>filter_var($email,FILTER_VALIDATE_EMAIL)!==false)));
   $projectName=$project['project_number'].' · '.$project['project_name'];
   $url=rtrim((string)($cfg['base_url']??''),'/').'/?a=project_followup&id='.$project['id'];
   $subject='Seguimiento pendiente · '.$projectName;
