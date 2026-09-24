@@ -102,7 +102,7 @@ if(in_array($a,['save_quote','update_quote'],true)){
         $families=array_values(array_intersect(['lifesmart','control4','shelly'],$_POST['quote_families']??[]));if(!$families)$families=['lifesmart'];$template=$_POST['quote_template_family']??'';if(!in_array($template,$families,true))$template=$families[0];
         $s=$db->prepare('SELECT id,name,markup_percentage FROM price_lists WHERE id=? AND active=1');$s->execute([$listId]);$list=$s->fetch();if(!$list)throw new Exception('Seleccioná una lista de precios.');$defaultMarkup=(float)$list['markup_percentage'];
         $hasOverrides=true;try{$db->query('SELECT 1 FROM product_price_overrides LIMIT 1');}catch(Throwable $x){$hasOverrides=false;}
-        $prodQ=$db->prepare("SELECT p.id,p.sku,p.description,p.unit,p.cost_usd,COALESCE(pc.name,'Otros') category FROM products p LEFT JOIN product_categories pc ON pc.id=p.category_id WHERE p.id=? AND p.active=1");
+        $prodQ=$db->prepare("SELECT p.id,p.sku,COALESCE(NULLIF(TRIM(p.name),''),NULLIF(TRIM(p.description),''),p.sku) description,p.unit,p.cost_usd,COALESCE(pc.name,'Otros') category FROM products p LEFT JOIN product_categories pc ON pc.id=p.category_id WHERE p.id=? AND p.active=1");
         $ovQ=$hasOverrides?$db->prepare('SELECT markup_percentage FROM product_price_overrides WHERE product_id=? AND price_list_id=?'):null;
         $items=[];$materials=0;$sort=0;
         foreach($_POST['items']??[] as $r){
