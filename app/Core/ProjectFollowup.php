@@ -25,6 +25,8 @@ function ensureProjectFollowupSchema(PDO $db):void{
         source_quote_id INT UNSIGNED NULL,
         user_id INT UNSIGNED NULL,
         event_type VARCHAR(40) NOT NULL,
+        contact_method VARCHAR(30) NULL,
+        contact_result VARCHAR(60) NULL,
         next_contact_date DATE NULL,
         notes TEXT NULL,
         event_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -33,6 +35,10 @@ function ensureProjectFollowupSchema(PDO $db):void{
         KEY idx_project_followup_project (project_id,event_date),
         KEY idx_project_followup_quote (source_quote_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    foreach(['contact_method'=>'VARCHAR(30) NULL','contact_result'=>'VARCHAR(60) NULL'] as $name=>$definition){
+        $q=$db->prepare("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='project_followup_history' AND COLUMN_NAME=?");$q->execute([$name]);
+        if(!(int)$q->fetchColumn())$db->exec('ALTER TABLE project_followup_history ADD COLUMN `'.$name.'` '.$definition.' AFTER event_type');
+    }
     $db->exec("CREATE TABLE IF NOT EXISTS erp_data_migrations (migration_key VARCHAR(190) PRIMARY KEY,applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     $claim=$db->prepare('INSERT IGNORE INTO erp_data_migrations(migration_key) VALUES(?)');$claim->execute(['2026-09-24-project-followups']);
     if(!$claim->rowCount())return;
