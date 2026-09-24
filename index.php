@@ -118,8 +118,11 @@ if($a==='quote_status'){
  if(!$manage){http_response_code(403);exit('Tu perfil no permite cambiar el estado del presupuesto.');}
  require __DIR__.'/app/Modules/Quotes/quote_status.php';exit;
 }
-if(in_array($a,['quote_followup','save_quote_followup'],true)){
- require __DIR__.'/app/Modules/Quotes/module.php';exit;
+if(in_array($a,['project_followup','save_project_followup','quote_followup','save_quote_followup'],true)){
+ [$logged,$view,$manage]=recoveredProjectRouteAccess();
+ if(!$logged){header('Location:index.php');exit;}
+ if(!$view||(($a==='save_project_followup'||$a==='save_quote_followup')&&!$manage)){http_response_code(403);exit('Tu perfil no permite gestionar el seguimiento del proyecto.');}
+ require __DIR__.'/app/Modules/Projects/followup.php';exit;
 }
 if($a==='followup_agenda'){
  [$logged,$view]=recoveredQuoteRouteAccess();
