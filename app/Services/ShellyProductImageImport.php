@@ -35,9 +35,9 @@ function importShellyProductImages20260924(PDO $db, string $erpRoot, int $batchS
         throw new RuntimeException('El manifiesto de imágenes Shelly no tiene el formato esperado.');
     }
 
-    $processed = $db->prepare('SELECT 1 FROM erp_product_image_imports WHERE import_key=? AND sku=?');
+    $processed = $db->prepare("SELECT 1 FROM erp_product_image_imports WHERE import_key=? AND sku=? AND status IN ('importada','imagen_existente')");
     $findProduct = $db->prepare("SELECT id,image_data FROM products WHERE brand='Shelly' AND LOWER(TRIM(sku))=LOWER(TRIM(?)) LIMIT 1");
-    $save = $db->prepare('INSERT INTO erp_product_image_imports(import_key,sku,product_id,status,source_url,error_message) VALUES(?,?,?,?,?,?)');
+    $save = $db->prepare('INSERT INTO erp_product_image_imports(import_key,sku,product_id,status,source_url,error_message) VALUES(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE product_id=VALUES(product_id),status=VALUES(status),source_url=VALUES(source_url),error_message=VALUES(error_message),processed_at=CURRENT_TIMESTAMP');
     $count = 0;
 
     while (($values = fgetcsv($handle, 0, ',', '"', '\\')) !== false && $count < $batchSize) {
@@ -108,4 +108,3 @@ function importShellyProductImages20260924(PDO $db, string $erpRoot, int $batchS
     }
     fclose($handle);
 }
-
