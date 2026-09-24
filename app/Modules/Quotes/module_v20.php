@@ -18,16 +18,21 @@ ob_start();require __DIR__.'/module_v19.php';$html=ob_get_clean();
 $conceptJson=json_encode($conceptRows,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
 $inject=<<<HTML
 <style>
-tr[data-concept="1"] td{vertical-align:middle}tr[data-concept="1"] .concept-no{font-weight:800;text-align:center;display:block}tr[data-concept="1"] td:nth-child(n+3):nth-child(-n+6){display:none}
+tr[data-concept="1"] td{vertical-align:middle}
+tr[data-concept="1"] .concept-label{min-width:120px;white-space:nowrap}
+tr[data-concept="1"] .concept-no{font-weight:800;display:block;color:#394553}
+tr[data-concept="1"] .concept-description{min-width:320px}
+tr[data-concept="1"] .concept-actions{width:110px;text-align:right}
+tr[data-concept="1"] .concept-actions .danger{cursor:pointer}
 </style>
 <script>
 (function(){
  const savedConcepts=$conceptJson;
  function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
- function renumber(block){[...block.querySelectorAll('tr[data-concept="1"]')].forEach((r,n)=>{const x=r.querySelector('.concept-no');if(x)x.textContent=String(n+1);});}
+ function renumber(block){[...block.querySelectorAll('tr[data-concept="1"]')].forEach((r,n)=>{const x=r.querySelector('.concept-no');if(x)x.textContent='Concepto '+String(n+1);});}
  window.addConceptItem=function(block,data={}){
    const i=itemIndex++,tr=document.createElement('tr');tr.dataset.manual='1';tr.dataset.concept='1';
-   tr.innerHTML=`<td><input type="hidden" name="items[\${i}][is_manual]" value="1"><input type="hidden" name="items[\${i}][is_concept]" value="1"><input type="hidden" name="items[\${i}][sku]" value="__CONCEPT__"><input type="hidden" name="items[\${i}][unit]" value="concepto"><input type="hidden" name="items[\${i}][quantity]" value="1"><input type="hidden" name="items[\${i}][unit_price]" value="0"><input class="section-title-hidden" type="hidden" name="items[\${i}][section_title]" value="\${esc(data.section_title||block.querySelector('.block-title')?.value||'Materiales')}"><input class="block-order-hidden" type="hidden" name="items[\${i}][block_order]" value="\${Number(data.block_order||0)}"><span class="concept-no"></span></td><td colspan="6"><input class="desc-input" name="items[\${i}][description]" value="\${esc(data.description||'')}" placeholder="Descripción del concepto" style="width:100%"></td><td><button type="button" class="danger">×</button></td>`;
+   tr.innerHTML=`<td class="concept-label"><input type="hidden" name="items[\${i}][is_manual]" value="1"><input type="hidden" name="items[\${i}][is_concept]" value="1"><input type="hidden" name="items[\${i}][sku]" value="__CONCEPT__"><input type="hidden" name="items[\${i}][unit]" value="concepto"><input type="hidden" name="items[\${i}][quantity]" value="1"><input type="hidden" name="items[\${i}][unit_price]" value="0"><input class="section-title-hidden" type="hidden" name="items[\${i}][section_title]" value="\${esc(data.section_title||block.querySelector('.block-title')?.value||'Materiales')}"><input class="block-order-hidden" type="hidden" name="items[\${i}][block_order]" value="\${Number(data.block_order||0)}"><span class="concept-no"></span></td><td class="concept-description" colspan="6"><input class="desc-input" name="items[\${i}][description]" value="\${esc(data.description||'')}" placeholder="Escribí la descripción del concepto" style="width:100%"></td><td class="concept-actions"><button type="button" class="btn danger">Eliminar</button></td>`;
    tr.querySelector('button').onclick=()=>{tr.remove();renumber(block);};
    (block.querySelector('.item-body')||block.querySelector('tbody')).appendChild(tr);renumber(block);
  };
