@@ -8,6 +8,7 @@ date_default_timezone_set($cfg['timezone']??'America/Argentina/Buenos_Aires');
 try{$db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);}catch(Throwable $e){http_response_code(500);exit('No se pudo conectar con MySQL. Revisá config.php.');}
 require_once $erpRoot.'/app/Services/AdiProductImport.php';
 require_once $erpRoot.'/app/Services/ShellyProductImport.php';
+require_once $erpRoot.'/app/Services/ShellyProductImageImport.php';
 require_once $erpRoot.'/app/Services/ProductCategoryCleanup.php';
 require_once $erpRoot.'/app/Services/ProductImageZipImport.php';
 try{
@@ -19,6 +20,7 @@ try{
  $db->exec("UPDATE products p JOIN product_categories pc ON pc.id=p.category_id SET p.brand='LifeSmart' WHERE (p.brand IS NULL OR TRIM(p.brand)='') AND LOWER(pc.name) LIKE '%lifesmart%'");
  importAdiProducts20260916($db,$erpRoot);
  importShellyProducts20260924($db,$erpRoot);
+ importShellyProductImages20260924($db,$erpRoot);
  normalizeProductCatalogFields($db);
  consolidateLifeSmartDomoticsCategory($db);
 }catch(Throwable $e){}
