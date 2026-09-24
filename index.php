@@ -53,7 +53,7 @@ if($a==='project'){
  [$logged,$view,$manage]=recoveredProjectRouteAccess();
  if($logged&&!$view){http_response_code(403);exit('Tu perfil no permite acceder a proyectos.');}
  if($logged&&$view&&!$manage){require __DIR__.'/app/Modules/Projects/detail_technical.php';exit;}
- require __DIR__.'/app/Modules/Projects/detail_v5.php';exit;
+ require __DIR__.'/app/Modules/Projects/detail_v6.php';exit;
 }
 if(in_array($a,['new_project','save_project'],true)){
  [,,$manage]=recoveredProjectRouteAccess();
@@ -120,6 +120,12 @@ if($a==='quote_status'){
 }
 if(in_array($a,['quote_followup','save_quote_followup'],true)){
  require __DIR__.'/app/Modules/Quotes/module.php';exit;
+}
+if($a==='followup_agenda'){
+ [$logged,$view]=recoveredQuoteRouteAccess();
+ if(!$logged){header('Location:index.php');exit;}
+ if(!$view){http_response_code(403);exit('Tu perfil no permite acceder al seguimiento comercial.');}
+ require __DIR__.'/app/Modules/Quotes/followup_agenda.php';exit;
 }
 if(in_array($a,['deliveries','new_delivery','save_delivery','delivery','confirm_delivery','delivery_print'],true)){
  [,,$quoteManage]=recoveredQuoteRouteAccess();
