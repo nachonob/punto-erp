@@ -22,6 +22,7 @@ try{
  importShellyProducts20260924($db,$erpRoot);
  importShellyProductImages20260924($db,$erpRoot);
  normalizeProductCatalogFields($db);
+ normalizeUnifiedProductNamesV2($db);
  consolidateLifeSmartDomoticsCategory($db);
 }catch(Throwable $e){}
 if(isset($_SESSION['last'])&&time()-$_SESSION['last']>(int)$cfg['session_minutes']*60){session_unset();session_destroy();session_start();$_SESSION['msg']='La sesión se cerró por inactividad.';}
