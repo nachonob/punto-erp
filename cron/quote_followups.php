@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 $root=dirname(__DIR__);
 $cfg=require $root.'/config.php';
+require_once $root.'/app/Core/ProjectFollowup.php';
 date_default_timezone_set($cfg['timezone']??'America/Argentina/Buenos_Aires');
 
 $provided=(string)($_GET['token']??'');
@@ -15,18 +16,19 @@ if($expected===''||$provided===''||!hash_equals($expected,$provided)){
 
 try{
  $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=utf8mb4',$cfg['db_user'],$cfg['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
- $rows=$db->query("SELECT q.id,q.version_no,q.proposal_name,q.next_followup_date,p.project_number,p.name project_name,c.business_name,c.contact_name,c.email client_email,u.name responsible_name,u.email responsible_email FROM quotes q JOIN projects p ON p.id=q.project_id JOIN clients c ON c.id=p.client_id JOIN users u ON u.id=q.responsible_user_id WHERE q.next_followup_date<=CURDATE() AND q.followup_closed_at IS NULL AND q.reminder_sent_at IS NULL ORDER BY q.next_followup_date,q.id")->fetchAll();
+ ensureProjectFollowupSchema($db);
+ $rows=$db->query("SELECT p.id,p.project_number,p.name project_name,p.next_followup_date,c.business_name,c.contact_name,u.name responsible_name,u.email responsible_email,(SELECT COUNT(*) FROM quotes q WHERE q.project_id=p.id) quote_count FROM projects p JOIN clients c ON c.id=p.client_id LEFT JOIN users u ON u.id=p.followup_responsible_user_id WHERE p.next_followup_date<=CURDATE() AND p.followup_closed_at IS NULL AND p.followup_reminder_sent_at IS NULL ORDER BY p.next_followup_date,p.id")->fetchAll();
  $sent=0;
- foreach($rows as $quote){
-  $claim=$db->prepare('UPDATE quotes SET reminder_sent_at=NOW() WHERE id=? AND next_followup_date<=CURDATE() AND followup_closed_at IS NULL AND reminder_sent_at IS NULL');
-  $claim->execute([$quote['id']]);if(!$claim->rowCount())continue;
-  $recipients=array_values(array_unique(array_filter([$quote['responsible_email'],(string)($cfg['quote_reminder_email']??'iescobar@puntodomotica.com')],static fn(string $email):bool=>filter_var($email,FILTER_VALIDATE_EMAIL)!==false)));
-  $quoteNumber=trim((string)($quote['proposal_name']??''))?:($quote['project_number'].' · v'.$quote['version_no']);
-  $url=rtrim((string)($cfg['base_url']??''),'/').'/?a=quote_followup&id='.$quote['id'];
-  $subject='Seguimiento pendiente · '.$quoteNumber;
-  $body="Hola {$quote['responsible_name']},\n\nRecordatorio: hay que contactar a {$quote['business_name']} por la propuesta {$quoteNumber}.\nLa fecha programada es {$quote['next_followup_date']}.\n\nGestionar seguimiento: {$url}\n";
+ foreach($rows as $project){
+  $claim=$db->prepare('UPDATE projects SET followup_reminder_sent_at=NOW() WHERE id=? AND next_followup_date<=CURDATE() AND followup_closed_at IS NULL AND followup_reminder_sent_at IS NULL');
+  $claim->execute([$project['id']]);if(!$claim->rowCount())continue;
+  $recipients=array_values(array_unique(array_filter([(string)$project['responsible_email'],(string)($cfg['quote_reminder_email']??'iescobar@puntodomotica.com')],static fn(string $email):bool=>filter_var($email,FILTER_VALIDATE_EMAIL)!==false)));
+  $projectName=$project['project_number'].' · '.$project['project_name'];
+  $url=rtrim((string)($cfg['base_url']??''),'/').'/?a=project_followup&id='.$project['id'];
+  $subject='Seguimiento pendiente · '.$projectName;
+  $body="Hola ".($project['responsible_name']?:'equipo').",\n\nRecordatorio: hay que contactar a {$project['business_name']} por el proyecto {$projectName}.\nEl proyecto reúne {$project['quote_count']} presupuesto(s) y tiene una única fecha de seguimiento: {$project['next_followup_date']}.\n\nGestionar seguimiento: {$url}\n";
   $headers="From: ".($cfg['company_email']??'iescobar@puntodomotica.com')."\r\nContent-Type: text/plain; charset=UTF-8";
-  if(!$recipients||!mail(implode(',',$recipients),$subject,$body,$headers)){$db->prepare('UPDATE quotes SET reminder_sent_at=NULL WHERE id=?')->execute([$quote['id']]);continue;}
+  if(!$recipients||!mail(implode(',',$recipients),$subject,$body,$headers)){$db->prepare('UPDATE projects SET followup_reminder_sent_at=NULL WHERE id=?')->execute([$project['id']]);continue;}
   $sent++;
  }
  echo "Recordatorios enviados: {$sent}\n";
