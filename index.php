@@ -86,7 +86,7 @@ if(in_array($a,['quote_view','quote_print'],true)){
  [$logged,$view,$manage]=recoveredQuoteRouteAccess();
  if($logged&&!$view){http_response_code(403);exit('Tu perfil no permite acceder a presupuestos.');}
  if($logged&&$view&&!$manage){require __DIR__.'/app/Modules/Quotes/technical_view.php';exit;}
- require __DIR__.'/app/Modules/Quotes/print_v14.php';exit;
+ require __DIR__.'/app/Modules/Quotes/print_v15.php';exit;
 }
 if(in_array($a,['new_quote','save_quote','edit_quote','update_quote','duplicate_quote'],true)){
  [,,$manage]=recoveredQuoteRouteAccess();
