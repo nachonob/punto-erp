@@ -40,7 +40,7 @@ try{
 $hadAuthenticatedUser=array_key_exists('user',$_SESSION);$authenticatedUser=$_SESSION['user']??null;
 if(!$hadAuthenticatedUser)$_SESSION['user']=['role'=>'public_quote'];
 ob_start();
-try{require __DIR__.'/print_v11.php';$html=ob_get_clean();}
+try{require __DIR__.'/print_v15.php';$html=ob_get_clean();}
 finally{if($hadAuthenticatedUser)$_SESSION['user']=$authenticatedUser;else unset($_SESSION['user']);}
 $html=preg_replace('/<a class="light" href="\?a=quotes">.*?<\/a>/s','',$html)??$html;
 $html=preg_replace('/<a class="dark" href="\?a=edit_quote&id=\d+">Editar<\/a>/','',$html)??$html;
