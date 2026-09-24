@@ -44,7 +44,10 @@ $inject=<<<'HTML'
     if(section)section.value=title;
     if(order)order.value=String(blockIndex);
     const concept=row.querySelector('.concept-no');
-    if(concept)concept.textContent=String(rowIndex+1);
+    if(concept){
+     const conceptIndex=rows(block.querySelector('tbody')).filter(item=>item.dataset.concept==='1').indexOf(row);
+     concept.textContent='Concepto '+String(conceptIndex+1);
+    }
    });
   });
   if(typeof window.renumberBlocks==='function')window.renumberBlocks();
