@@ -1,6 +1,25 @@
 <?php
 declare(strict_types=1);
 
+function normalizeProductCatalogFields(PDO $db): void
+{
+    $migrationKey = 'productos_nombre_unificado_v1';
+    $db->exec("CREATE TABLE IF NOT EXISTS erp_data_migrations (migration_key VARCHAR(120) NOT NULL PRIMARY KEY, applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    $db->beginTransaction();
+    try {
+        $mark = $db->prepare('INSERT IGNORE INTO erp_data_migrations(migration_key) VALUES(?)');
+        $mark->execute([$migrationKey]);
+        if ($mark->rowCount() === 1) {
+            $db->exec("UPDATE products SET name=TRIM(description) WHERE (name IS NULL OR TRIM(name)='') AND description IS NOT NULL AND TRIM(description)<>''");
+            $db->exec("UPDATE products SET description='' WHERE description IS NOT NULL AND LOWER(TRIM(description))=LOWER(TRIM(name))");
+        }
+        $db->commit();
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) $db->rollBack();
+        throw $e;
+    }
+}
+
 /**
  * Importa una sola vez el catalogo ADI validado.
  *
@@ -98,14 +117,17 @@ function importAdiProducts20260916(PDO $db, string $erpRoot): void
                 throw new RuntimeException('No se encontro la categoria del SKU ' . $sku . '.');
             }
 
+            $productName = trim((string)$row['name']) ?: trim((string)$row['description']);
+            $technicalDetail = trim((string)$row['description']);
+            if (mb_strtolower($technicalDetail) === mb_strtolower($productName)) $technicalDetail = '';
             $cost = round(max(0, (float)$row['cost_usd']), 2);
             $sourceKey = 'adi-20260916-' . substr(hash('sha256', strtolower($sku)), 0, 32);
             $insertProduct->execute([
                 $categoryId,
                 $sku,
-                trim((string)$row['name']),
+                $productName,
                 trim((string)$row['brand']),
-                trim((string)$row['description']),
+                $technicalDetail,
                 'Unidad',
                 $cost,
                 $sourceKey,
