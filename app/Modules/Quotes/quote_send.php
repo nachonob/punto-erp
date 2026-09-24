@@ -4,6 +4,7 @@ declare(strict_types=1);
 if(session_status()!==PHP_SESSION_ACTIVE)session_start();
 $root=dirname(__DIR__,3);
 $cfg=require $root.'/config.php';
+require_once $root.'/app/Core/ProjectFollowup.php';
 date_default_timezone_set($cfg['timezone']??'America/Argentina/Buenos_Aires');
 if(empty($_SESSION['user'])){header('Location:index.php');exit;}
 if(!hash_equals($_SESSION['csrf']??'',(string)($_GET['csrf']??''))){http_response_code(419);exit('Solicitud vencida.');}
@@ -22,7 +23,8 @@ $db=new PDO('mysql:host='.$cfg['db_host'].';dbname='.$cfg['db_name'].';charset=u
 if(!(bool)$db->query("SHOW COLUMNS FROM quotes LIKE 'locked_at'")->fetch())$db->exec("ALTER TABLE quotes ADD COLUMN locked_at DATETIME NULL AFTER sent_at");
 $statusType=(string)$db->query("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='quotes' AND COLUMN_NAME='status'")->fetchColumn();
 if(!str_contains($statusType,'aprobado_definitivo'))$db->exec("ALTER TABLE quotes MODIFY status ENUM('borrador','enviado','aprobado_inicial','aprobado_definitivo','final','rechazado') NOT NULL DEFAULT 'borrador'");
-$s=$db->prepare('SELECT id,status FROM quotes WHERE id=?');
+ensureProjectFollowupSchema($db);
+$s=$db->prepare('SELECT id,project_id,status FROM quotes WHERE id=?');
 $s->execute([$id]);
 $quote=$s->fetch();
 if(!$quote){http_response_code(404);exit('Presupuesto inexistente.');}
@@ -42,6 +44,7 @@ try{
   SELECT 1 FROM quote_followup_history WHERE quote_id=? AND event_type='enviado'
  )")->execute([$id,$userId,$nextDate,'Enviado por '.$channel,$id]);
 }catch(Throwable $ignored){}
+scheduleProjectFollowupForQuote($db,(int)$quote['project_id'],$id,$sent,$userId,$channel);
 $db->commit();
 
 header('Location: '.$target);
