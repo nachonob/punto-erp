@@ -33,7 +33,7 @@ if($action==='delete_project_followup'){
  }catch(Throwable $error){if($db->inTransaction())$db->rollBack();$_SESSION['msg']='No se pudo eliminar: '.$error->getMessage();}
  header('Location:?a=project_followup&id='.$projectId);exit;
 }
-$s=$db->prepare('SELECT p.*,c.business_name,c.contact_name,c.email,c.phone,u.name responsible_name FROM projects p JOIN clients c ON c.id=p.client_id LEFT JOIN users u ON u.id=p.followup_responsible_user_id WHERE p.id=?');$s->execute([$projectId]);$project=$s->fetch();if(!$project){http_response_code(404);exit('Proyecto inexistente.');}
+$s=$db->prepare('SELECT p.*,c.business_name,c.contact_name,c.email,c.whatsapp phone,u.name responsible_name FROM projects p JOIN clients c ON c.id=p.client_id LEFT JOIN users u ON u.id=p.followup_responsible_user_id WHERE p.id=?');$s->execute([$projectId]);$project=$s->fetch();if(!$project){http_response_code(404);exit('Proyecto inexistente.');}
 $s=$db->prepare('SELECT id,proposal_name,version_no FROM quotes WHERE project_id=? ORDER BY quote_date DESC,id DESC');$s->execute([$projectId]);$quotes=$s->fetchAll();
 $s=$db->prepare('SELECT h.*,u.name user_name,q.proposal_name,q.version_no FROM project_followup_history h LEFT JOIN users u ON u.id=h.user_id LEFT JOIN quotes q ON q.id=h.source_quote_id WHERE h.project_id=? ORDER BY h.event_date DESC,h.id DESC');$s->execute([$projectId]);$history=$s->fetchAll();
 $edit=null;$editId=(int)($_GET['edit']??0);if($editId){$s=$db->prepare('SELECT * FROM project_followup_history WHERE id=? AND project_id=? AND source_quote_id IS NULL AND legacy_quote_history_id IS NULL');$s->execute([$editId,$projectId]);$edit=$s->fetch()?:null;}
