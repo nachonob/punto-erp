@@ -52,7 +52,10 @@ $inject=<<<'HTML'
  textarea.insertAdjacentElement('afterend',editor);
  const content=editor.querySelector('.quote-rich-content');
  const original=textarea.value.trim();
- if(/<(p|br|strong|b|em|i|u|ul|ol|li|h3|h4)\b/i.test(original))content.innerHTML=original;
+ const isNew=new URLSearchParams(location.search).get('a')==='new_quote';
+ const defaultNotes='<p><strong>FORMA DE PAGO:</strong><br>Anticipo por ingeniería: 10% del total del Proyecto, será asignado como crédito al realizar el pago de la mano de obra.<br>100% de materiales mínimo un mes antes de ingresar en obra. 50% de Mano de obra al ingresar, el resto al terminar el trabajo.</p><p><strong>NO INCLUYE CABLEADO, NI CABLES (EN EL CASO DE NECESITARLO).</strong><br><strong>NO INCLUYE PERFORACIONES EN LAS PUERTAS PARA MONTAJE DE CERRADURAS</strong><br><strong>NO INCLUYE VIÁTICOS.</strong><br><strong>COTIZACIÓN:</strong> Dólar billete venta banco nación.<br>Plazo de entrega 30-40 días según importación y aprobación de seguridad eléctrica</p>';
+ if(!original&&isNew)content.innerHTML=defaultNotes;
+ else if(/<(p|br|strong|b|em|i|u|ul|ol|li|h3|h4)\b/i.test(original))content.innerHTML=original;
  else content.innerHTML=original.replace(/[&<>]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[char])).replace(/\r?\n/g,'<br>');
  editor.querySelectorAll('[data-command]').forEach(button=>button.addEventListener('click',()=>{
   content.focus();document.execCommand(button.dataset.command,false,button.dataset.value||null);
